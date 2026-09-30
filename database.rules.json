@@ -1,22 +1,66 @@
 {
   "rules": {
+    "usuarios": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid && !data.exists()",
+        ".validate": "newData.hasChildren(['persona']) && newData.parent().parent().child('duenos').child(newData.child('persona').val()).child('uid').val() === auth.uid",
+        "persona": {
+          ".validate": "newData.isString()"
+        },
+        "$otro": {
+          ".validate": false
+        }
+      }
+    },
+    "duenos": {
+      "$persona": {
+        ".write": "auth != null && !data.exists()",
+        ".validate": "newData.hasChildren(['uid', 'codigo']) && newData.child('uid').val() === auth.uid && newData.parent().parent().child('usuarios').child(auth.uid).child('persona').val() === $persona && (($persona === 'Sebastian' && newData.child('codigo').val() === 'CODIGO_SEBASTIAN') || ($persona === 'Matías' && newData.child('codigo').val() === 'CODIGO_MATIAS') || ($persona === 'Ian' && newData.child('codigo').val() === 'CODIGO_IAN') || ($persona === 'Joaquín' && newData.child('codigo').val() === 'CODIGO_JOAQUIN'))",
+        "uid": {
+          ".validate": "newData.isString()"
+        },
+        "codigo": {
+          ".validate": "newData.isString()"
+        },
+        "$otro": {
+          ".validate": false
+        }
+      }
+    },
     "faltas": {
-      ".read": true,
+      ".read": "auth != null && root.child('usuarios').child(auth.uid).exists()",
       "$persona": {
         ".validate": "$persona === 'Sebastian' || $persona === 'Matías' || $persona === 'Ian' || $persona === 'Joaquín'",
         "$modulo": {
-          ".write": true,
+          ".write": "auth != null && root.child('duenos').child($persona).child('uid').val() === auth.uid",
           ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 200 && ($modulo === 'SSG' || $modulo === 'PGV' || $modulo === 'FOL' || $modulo === 'PROY' || $modulo === 'SOST' || $modulo === 'AD' || $modulo === 'DI' || $modulo === 'PGL' || $modulo === 'CIBER')"
         }
       }
     },
     "retrasos": {
-      ".read": true,
+      ".read": "auth != null && root.child('usuarios').child(auth.uid).exists()",
       "$persona": {
         ".validate": "$persona === 'Sebastian' || $persona === 'Matías' || $persona === 'Ian' || $persona === 'Joaquín'",
         "$modulo": {
-          ".write": true,
+          ".write": "auth != null && root.child('duenos').child($persona).child('uid').val() === auth.uid",
           ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 200 && ($modulo === 'SSG' || $modulo === 'PGV' || $modulo === 'FOL' || $modulo === 'PROY' || $modulo === 'SOST' || $modulo === 'AD' || $modulo === 'DI' || $modulo === 'PGL' || $modulo === 'CIBER')"
+        }
+      }
+    },
+    "perfiles": {
+      ".read": "auth != null && root.child('usuarios').child(auth.uid).exists()",
+      "$persona": {
+        ".write": "auth != null && root.child('duenos').child($persona).child('uid').val() === auth.uid",
+        ".validate": "$persona === 'Sebastian' || $persona === 'Matías' || $persona === 'Ian' || $persona === 'Joaquín'",
+        "nombre": {
+          ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 24"
+        },
+        "foto": {
+          ".validate": "newData.isString() && newData.val().beginsWith('data:image/jpeg;base64,') && newData.val().length <= 60000"
+        },
+        "$otro": {
+          ".validate": false
         }
       }
     }

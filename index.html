@@ -21,6 +21,7 @@
     --bad: #ff5a6a;
   }
   * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
   html { scroll-behavior: smooth; }
   html, body { margin: 0; }
   body {
@@ -190,6 +191,63 @@
   .sync.on i { background: #3ddc84; box-shadow: 0 0 8px #3ddc84; }
   .sync.off i { background: var(--bad); box-shadow: 0 0 8px var(--bad); }
 
+
+  /* AVATARES CON FOTO */
+  .avatar, .av { overflow: hidden; }
+  .avatar img, .av img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+  /* USUARIO EN LA NAVEGACIÓN */
+  .user {
+    display: inline-flex; align-items: center; gap: 10px; background: transparent; cursor: pointer;
+    border: 1.5px solid var(--border); border-radius: 999px; padding: 4px 16px 4px 4px;
+    color: var(--text); font: inherit; font-size: .85rem; font-weight: 500; transition: border-color .2s;
+  }
+  .user:hover { border-color: var(--cyan); }
+  .av {
+    width: 30px; height: 30px; border-radius: 50%; border: 1.5px solid var(--border); flex: none;
+    display: grid; place-items: center; font-family: "Playfair Display", serif; font-style: italic; font-size: .95rem;
+  }
+  .links .pill.ghost { padding: 8px 18px; }
+
+  .who .tu { font-size: .75rem; color: var(--cyan); font-weight: 400; }
+  .ro { text-align: center; color: var(--muted); font-size: .8rem; margin: -18px 0 26px; }
+  .ro strong { color: var(--warn); font-weight: 500; }
+
+  /* PANTALLA DE ACCESO Y VENTANA DE PERFIL */
+  .auth { position: fixed; inset: 0; z-index: 30; background: var(--bg); overflow-y: auto; display: grid; place-items: center; padding: 24px 16px; }
+  .modal { position: fixed; inset: 0; z-index: 25; background: rgba(10,14,22,.72); backdrop-filter: blur(4px); display: grid; place-items: center; padding: 16px; overflow-y: auto; }
+  .card {
+    position: relative; z-index: 1; width: 100%; max-width: 400px; border: 1.5px solid var(--border); border-radius: 18px;
+    background: rgba(19,26,40,.85); backdrop-filter: blur(6px); padding: 30px 26px;
+  }
+  .card .logo { justify-content: center; margin-bottom: 18px; }
+  .card h2 { text-align: center; font-size: 1.9rem; margin-bottom: 4px; }
+  .card .sub { text-align: center; color: var(--muted); font-size: .82rem; margin: 0 0 22px; line-height: 1.6; }
+  .tabs { display: grid; grid-template-columns: 1fr 1fr; border: 1.5px solid var(--border); border-radius: 999px; padding: 3px; margin-bottom: 22px; }
+  .tabs button { background: none; border: none; border-radius: 999px; padding: 8px; color: var(--muted); font: inherit; font-size: .82rem; font-weight: 500; cursor: pointer; }
+  .tabs button.on { background: var(--cyan); color: #fff; }
+  .card form { display: grid; gap: 14px; }
+  .card label { display: grid; gap: 6px; font-size: .75rem; color: var(--muted); }
+  .card input[type=text], .card input[type=email], .card input[type=password] {
+    width: 100%; background: var(--bg-deep); border: 1.5px solid var(--border); border-radius: 10px; padding: 11px 14px;
+    color: var(--text); font: inherit; font-size: .9rem; outline: none; transition: border-color .15s;
+  }
+  .card input:focus { border-color: var(--cyan); }
+  .card input.code { text-transform: uppercase; letter-spacing: .12em; font-weight: 500; }
+  .card .pill { width: 100%; margin-top: 4px; }
+  .card .pill:disabled { opacity: .6; cursor: wait; }
+  .link { background: none; border: none; padding: 0; color: var(--cyan); font: inherit; font-size: .78rem; cursor: pointer; justify-self: center; }
+  .link:hover { text-decoration: underline; }
+  .msg { font-size: .8rem; text-align: center; min-height: 1.2em; margin: 0; color: var(--bad); }
+  .msg.okmsg { color: #3ddc84; }
+  .hint { font-size: .72rem; color: var(--muted); line-height: 1.5; }
+
+  .perfil-foto { display: grid; justify-items: center; gap: 12px; margin-bottom: 6px; }
+  .perfil-foto .av { width: 96px; height: 96px; font-size: 2.4rem; border-width: 2px; }
+  .perfil-foto .acciones { display: flex; gap: 18px; }
+  .cerrar { position: absolute; top: 14px; right: 16px; background: none; border: none; color: var(--muted); font-size: 1.4rem; cursor: pointer; line-height: 1; }
+  .cerrar:hover { color: var(--text); }
+
   @media (max-width: 900px) {
     .hero { grid-template-columns: 1fr; padding-top: 30px; }
     .ranking { grid-template-columns: repeat(2, 1fr); }
@@ -197,7 +255,10 @@
     .fwrap { grid-template-columns: 1fr 1fr; }
   }
   @media (max-width: 560px) {
-    .links a:not(.pill) { display: none; }
+    .links a { display: none; }
+    .links { gap: 10px; }
+    .sync span, .user span:last-child { display: none; }
+    .user { padding: 4px; }
     .ranking, .grid { grid-template-columns: 1fr; }
     .stats { padding: 20px; }
     .stats b { font-size: 1.6rem; }
@@ -218,7 +279,8 @@
       <a href="#inicio">Inicio</a>
       <a href="#ranking">Ranking</a>
       <a href="#modulos">Módulos</a>
-      <a class="pill" href="#modulos">Apuntar falta</a>
+      <button class="user" id="userBtn" title="Mi perfil"><span class="av" id="userAv"></span><span id="userName"></span></button>
+      <button class="pill ghost" id="salir">Salir</button>
     </div>
   </nav>
 
@@ -253,6 +315,7 @@
       <p>Naranja al acercarte al límite de faltas, rojo al alcanzarlo. Los retrasos se apuntan aparte, debajo de cada módulo.</p>
     </div>
     <div class="players" id="players"></div>
+    <p class="ro" id="ro" hidden></p>
     <div class="grid" id="grid"></div>
   </section>
 </div>
@@ -274,8 +337,8 @@
     <div>
       <h4>Datos</h4>
       <button id="exportar">Exportar datos</button>
-      <button id="importar">Importar datos</button>
-      <button id="reset">Reiniciar persona seleccionada</button>
+      <button id="importar">Importar mis datos</button>
+      <button id="reset">Reiniciar mis faltas y retrasos</button>
       <input type="file" id="fileInput" accept=".json" hidden>
     </div>
   </div>
@@ -283,13 +346,71 @@
 </footer>
 <div class="toast" id="toast"></div>
 
+<!-- Pantalla de acceso: se muestra mientras no haya sesión iniciada -->
+<div class="auth" id="auth">
+  <div class="glow g1"></div>
+  <div class="card">
+    <div class="logo"><i></i>2DAM</div>
+    <h2>Faltas 2DAM</h2>
+    <p class="sub" id="authSub">Comprobando sesión…</p>
+
+    <div class="tabs" id="tabs" hidden>
+      <button type="button" data-vista="login">Iniciar sesión</button>
+      <button type="button" data-vista="registro">Registrarse</button>
+    </div>
+
+    <form id="fLogin" hidden>
+      <label>Correo<input type="email" name="email" autocomplete="email" required></label>
+      <label>Contraseña<input type="password" name="pass" autocomplete="current-password" required></label>
+      <button class="pill" type="submit">Entrar</button>
+      <button class="link" type="button" id="olvido">¿Has olvidado la contraseña?</button>
+    </form>
+
+    <form id="fRegistro" hidden>
+      <label>Código de invitación<input class="code" type="text" name="codigo" placeholder="XXXX-XXXX" autocomplete="off" required></label>
+      <label>Correo<input type="email" name="email" autocomplete="email" required></label>
+      <label>Contraseña<input type="password" name="pass" autocomplete="new-password" minlength="6" required></label>
+      <label>Repite la contraseña<input type="password" name="pass2" autocomplete="new-password" minlength="6" required></label>
+      <span class="hint">Cada código es personal y solo se puede usar una vez: te vincula con tus faltas.</span>
+      <button class="pill" type="submit">Crear cuenta</button>
+    </form>
+
+    <form id="fVincular" hidden>
+      <label>Código de invitación<input class="code" type="text" name="codigo" placeholder="XXXX-XXXX" autocomplete="off" required></label>
+      <button class="pill" type="submit">Vincular código</button>
+      <button class="link" type="button" id="salirVincular">Cerrar sesión</button>
+    </form>
+
+    <p class="msg" id="authMsg"></p>
+  </div>
+</div>
+
+<!-- Ventana de personalización del perfil -->
+<div class="modal" id="perfil" hidden>
+  <div class="card">
+    <button class="cerrar" type="button" id="perfilCerrar" aria-label="Cerrar">×</button>
+    <h2>Tu perfil</h2>
+    <p class="sub">Así te verán tus compañeros en el ranking.</p>
+    <form id="fPerfil">
+      <div class="perfil-foto">
+        <span class="av" id="perfilAv"></span>
+        <div class="acciones">
+          <button class="link" type="button" id="fotoCambiar">Cambiar foto</button>
+          <button class="link" type="button" id="fotoQuitar">Quitar foto</button>
+        </div>
+        <input type="file" id="fotoInput" accept="image/*" hidden>
+      </div>
+      <label>Nombre visible<input type="text" name="nombre" maxlength="24" autocomplete="nickname"></label>
+      <button class="pill" type="submit">Guardar</button>
+    </form>
+    <p class="msg" id="perfilMsg"></p>
+  </div>
+</div>
+
 <script type="module">
 // ─────────────────────────────────────────────────────────────
 //  CONFIGURACIÓN DE FIREBASE
-//  Pega aquí los datos de tu proyecto (Consola de Firebase →
-//  Configuración del proyecto → Tus apps → SDK config).
-//  Mientras apiKey esté vacío la página funciona en "modo local"
-//  guardando los datos solo en este navegador.
+//  (Consola de Firebase → Configuración del proyecto → Tus apps)
 // ─────────────────────────────────────────────────────────────
 const firebaseConfig = {
   apiKey: "AIzaSyCNElTEb8nRKmdtihGHzG8JTO0H95adtIg",
@@ -301,7 +422,17 @@ const firebaseConfig = {
   appId: "1:861140427939:web:8c1d4f1eac986618c98b16"
 };
 
-const FIREBASE_SDK = "https://www.gstatic.com/firebasejs/10.12.2";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword,
+  sendPasswordResetEmail, signOut, deleteUser
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getDatabase, ref, get, onValue, runTransaction, update }
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getDatabase(app);
 
 const MODULOS = [
   { id: "SSG",   nombre: "SSG",            corto: "SSG", max: 16, horas: 96 },
@@ -314,31 +445,28 @@ const MODULOS = [
   { id: "PGL",   nombre: "PGL",            corto: "PGL", max: 18, horas: 110 },
   { id: "CIBER", nombre: "Ciberseguridad", corto: "CIB", max: 16, horas: 96 }
 ];
+// Ids internos de cada persona. En la base de datos:
+//   faltas/{persona}/{modulo}, retrasos/{persona}/{modulo}, perfiles/{persona}
+//   usuarios/{uid} → { persona }   duenos/{persona} → { uid, codigo }
 const PERSONAS = ["Sebastian", "Matías", "Ian", "Joaquín"];
-// Cada tipo es un nodo raíz en la base de datos: {tipo}/{persona}/{modulo}
 const TIPOS = ["faltas", "retrasos"];
-const KEYS = { faltas: "faltas2dam_v1", retrasos: "retrasos2dam_v1" };
-
-const ONLINE = Boolean(firebaseConfig.apiKey && firebaseConfig.databaseURL);
-// El SDK solo se descarga si hay configuración, así el modo local funciona sin internet
-let db, ref, onValue, runTransaction, update;
-if (ONLINE) {
-  const { initializeApp } = await import(`${FIREBASE_SDK}/firebase-app.js`);
-  const sdk = await import(`${FIREBASE_SDK}/firebase-database.js`);
-  ({ ref, onValue, runTransaction, update } = sdk);
-  db = sdk.getDatabase(initializeApp(firebaseConfig));
-}
 
 let datos = { faltas: vacio(), retrasos: vacio() };
+let perfiles = {};
+let yo = null;          // persona vinculada a la cuenta con la sesión iniciada
 let actual = PERSONAS[0];
-let ultimo = null; // { tipo, id } del contador que hay que animar
+let ultimo = null;      // { tipo, id } del contador que hay que animar
+let desuscribir = [];   // listeners de la base de datos que hay que cerrar al salir
+let registrando = false;
+
+const $ = id => document.getElementById(id);
 
 function vacio() {
   const d = {};
   PERSONAS.forEach(p => { d[p] = {}; MODULOS.forEach(m => d[p][m.id] = 0); });
   return d;
 }
-// Convierte lo que venga (BD, localStorage o archivo) al formato completo
+// Convierte lo que venga (BD o archivo) al formato completo
 function normalizar(g) {
   const base = vacio();
   if (g) PERSONAS.forEach(p => MODULOS.forEach(m => {
@@ -348,73 +476,261 @@ function normalizar(g) {
   return base;
 }
 
-// ── Capa de datos ────────────────────────────────────────────
-// En modo online escribimos en Firebase y el listener onValue
-// se encarga de actualizar `datos` y repintar en todos los navegadores.
-// En modo local se guarda en localStorage como antes.
-
-function cargarLocal(tipo) {
-  try { return normalizar(JSON.parse(localStorage.getItem(KEYS[tipo]))); } catch (e) { return vacio(); }
+// Los nombres los escribe cada usuario: hay que escaparlos antes de meterlos en innerHTML
+function esc(t) {
+  return String(t).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 }
-function guardarLocal() {
-  TIPOS.forEach(t => { try { localStorage.setItem(KEYS[t], JSON.stringify(datos[t])); } catch (e) {} });
+function nombre(p) { return perfiles[p]?.nombre || p; }
+function inicial(txt) { return esc([...txt][0].toUpperCase()); }
+function avatar(p) {
+  const foto = perfiles[p]?.foto;
+  return foto ? `<img src="${esc(foto)}" alt="">` : inicial(nombre(p));
 }
 
-function escucharCambios() {
-  if (!ONLINE) {
-    TIPOS.forEach(t => datos[t] = cargarLocal(t));
-    setSync("off", "Modo local");
-    render();
-    return;
+// ── Sesión ───────────────────────────────────────────────────
+
+onAuthStateChanged(auth, async user => {
+  if (registrando) return; // el formulario de registro se encarga
+  salirDeDatos();
+  if (!user) return mostrarAcceso("login");
+  try {
+    const snap = await get(ref(db, `usuarios/${user.uid}/persona`));
+    snap.exists() ? entrar(snap.val()) : mostrarAcceso("vincular");
+  } catch (e) {
+    console.error(e);
+    mostrarAcceso("login", "No se pudo conectar con la base de datos");
   }
-  TIPOS.forEach(tipo => onValue(ref(db, tipo), snap => {
+});
+
+// Vincula la cuenta con la persona a la que pertenece el código.
+// Las reglas solo aceptan la escritura si el código es el de esa persona y
+// nadie lo ha usado antes, así que probamos las cuatro hasta que una encaje.
+async function vincular(uid, codigo) {
+  codigo = codigo.trim().toUpperCase();
+  for (const p of PERSONAS) {
+    try {
+      await update(ref(db), { [`usuarios/${uid}`]: { persona: p }, [`duenos/${p}`]: { uid, codigo } });
+      return p;
+    } catch (e) {
+      if (!/permission/i.test(e.message)) throw e;
+    }
+  }
+  return null;
+}
+
+function entrar(p) {
+  yo = p; actual = p;
+  $("auth").hidden = true;
+  const escuchar = (ruta, cb) => desuscribir.push(onValue(ref(db, ruta), cb, err => {
+    console.error(err);
+    toast("No se pudo leer la base de datos", true);
+  }));
+  TIPOS.forEach(tipo => escuchar(tipo, snap => {
     const nuevos = normalizar(snap.val());
-    // Animar el contador de la persona visible que haya cambiado otra persona
+    // Animar el contador de la persona visible que haya cambiado
     if (!ultimo) {
       const m = MODULOS.find(m => nuevos[actual][m.id] !== datos[tipo][actual][m.id]);
       if (m) ultimo = { tipo, id: m.id };
     }
     datos[tipo] = nuevos;
     render();
-  }, err => {
-    console.error(err);
-    toast("No se pudo leer la base de datos", true);
   }));
-  onValue(ref(db, ".info/connected"), snap => {
+  escuchar("perfiles", snap => { perfiles = snap.val() || {}; render(); });
+  escuchar(".info/connected", snap => {
     snap.val() ? setSync("on", "En directo") : setSync("", "Reconectando…");
+  });
+  render();
+}
+
+function salirDeDatos() {
+  desuscribir.forEach(f => f());
+  desuscribir = [];
+  yo = null;
+  datos = { faltas: vacio(), retrasos: vacio() };
+  perfiles = {};
+}
+
+function mostrarAcceso(vista, msg = "") {
+  $("perfil").hidden = true;
+  $("auth").hidden = false;
+  $("tabs").hidden = vista === "vincular";
+  $("fLogin").hidden = vista !== "login";
+  $("fRegistro").hidden = vista !== "registro";
+  $("fVincular").hidden = vista !== "vincular";
+  document.querySelectorAll("#tabs button").forEach(b => b.classList.toggle("on", b.dataset.vista === vista));
+  $("authSub").textContent = {
+    login: "Inicia sesión para ver el ranking y apuntar tus faltas.",
+    registro: "Necesitas el código de invitación que te han pasado.",
+    vincular: "Tu cuenta aún no está vinculada. Escribe tu código de invitación para acceder a tus faltas."
+  }[vista];
+  avisoAcceso(msg);
+}
+function avisoAcceso(msg, bien) {
+  $("authMsg").textContent = msg;
+  $("authMsg").className = "msg" + (bien ? " okmsg" : "");
+}
+function ocupado(form, si) { form.querySelector("button[type=submit]").disabled = si; }
+
+function errorAuth(e) {
+  console.error(e);
+  return {
+    "auth/invalid-email": "El correo no es válido",
+    "auth/email-already-in-use": "Ya hay una cuenta con ese correo",
+    "auth/weak-password": "La contraseña debe tener al menos 6 caracteres",
+    "auth/invalid-credential": "Correo o contraseña incorrectos",
+    "auth/wrong-password": "Correo o contraseña incorrectos",
+    "auth/user-not-found": "Correo o contraseña incorrectos",
+    "auth/missing-password": "Escribe la contraseña",
+    "auth/too-many-requests": "Demasiados intentos, espera un poco",
+    "auth/network-request-failed": "Sin conexión a internet",
+    "auth/operation-not-allowed": "Falta activar el acceso con correo en Firebase → Authentication"
+  }[e.code] || "Algo ha fallado, inténtalo de nuevo";
+}
+
+document.querySelectorAll("#tabs button").forEach(b => b.onclick = () => mostrarAcceso(b.dataset.vista));
+
+$("fLogin").onsubmit = async ev => {
+  ev.preventDefault();
+  const f = ev.target.elements;
+  ocupado(ev.target, true); avisoAcceso("");
+  try {
+    await signInWithEmailAndPassword(auth, f.email.value.trim(), f.pass.value);
+    ev.target.reset();
+  } catch (e) { avisoAcceso(errorAuth(e)); }
+  finally { ocupado(ev.target, false); }
+};
+
+$("olvido").onclick = async () => {
+  const email = $("fLogin").elements.email.value.trim();
+  if (!email) return avisoAcceso("Escribe tu correo arriba y vuelve a pulsar");
+  try {
+    await sendPasswordResetEmail(auth, email);
+    avisoAcceso("Si el correo existe, te llegará un enlace para cambiar la contraseña", true);
+  } catch (e) { avisoAcceso(errorAuth(e)); }
+};
+
+$("fRegistro").onsubmit = async ev => {
+  ev.preventDefault();
+  const f = ev.target.elements;
+  if (f.pass.value !== f.pass2.value) return avisoAcceso("Las contraseñas no coinciden");
+  ocupado(ev.target, true); avisoAcceso("");
+  registrando = true;
+  let cuenta = null;
+  try {
+    cuenta = (await createUserWithEmailAndPassword(auth, f.email.value.trim(), f.pass.value)).user;
+    const p = await vincular(cuenta.uid, f.codigo.value);
+    if (!p) {
+      // Código incorrecto o ya usado: borramos la cuenta para no dejarla a medias
+      await deleteUser(cuenta).catch(() => signOut(auth));
+      return avisoAcceso("Código no válido o ya usado");
+    }
+    ev.target.reset();
+    entrar(p);
+    toast(`¡Bienvenido, ${p}!`);
+  } catch (e) {
+    if (cuenta) await deleteUser(cuenta).catch(() => signOut(auth));
+    avisoAcceso(e.code ? errorAuth(e) : "No se pudo completar el registro");
+  } finally {
+    registrando = false;
+    ocupado(ev.target, false);
+  }
+};
+
+$("fVincular").onsubmit = async ev => {
+  ev.preventDefault();
+  ocupado(ev.target, true); avisoAcceso("");
+  try {
+    const p = await vincular(auth.currentUser.uid, ev.target.elements.codigo.value);
+    if (!p) return avisoAcceso("Código no válido o ya usado");
+    ev.target.reset();
+    entrar(p);
+  } catch (e) { console.error(e); avisoAcceso("No se pudo vincular el código"); }
+  finally { ocupado(ev.target, false); }
+};
+
+$("salirVincular").onclick = () => signOut(auth);
+$("salir").onclick = () => signOut(auth);
+
+// ── Perfil ───────────────────────────────────────────────────
+
+let fotoNueva; // undefined = sin cambios, null = quitarla, texto = foto nueva
+
+function abrirPerfil() {
+  fotoNueva = undefined;
+  const campo = $("fPerfil").elements.nombre;
+  campo.value = perfiles[yo]?.nombre || "";
+  campo.placeholder = yo;
+  $("perfilMsg").textContent = "";
+  pintarPerfil();
+  $("perfil").hidden = false;
+}
+function cerrarPerfil() { $("perfil").hidden = true; }
+function pintarPerfil() {
+  const foto = fotoNueva === undefined ? perfiles[yo]?.foto : fotoNueva;
+  const txt = $("fPerfil").elements.nombre.value.trim() || yo;
+  $("perfilAv").innerHTML = foto ? `<img src="${esc(foto)}" alt="">` : inicial(txt);
+  $("fotoQuitar").hidden = !foto;
+}
+
+// Recorta la imagen en cuadrado y la reduce a 160×160 en JPEG para que
+// ocupe poco y se pueda guardar directamente en la base de datos
+function reducirFoto(file, lado = 160) {
+  return new Promise((ok, mal) => {
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(img.src);
+      const s = Math.min(img.naturalWidth, img.naturalHeight);
+      const c = document.createElement("canvas");
+      c.width = c.height = lado;
+      const ctx = c.getContext("2d");
+      ctx.fillStyle = "#1a2233";
+      ctx.fillRect(0, 0, lado, lado);
+      ctx.drawImage(img, (img.naturalWidth - s) / 2, (img.naturalHeight - s) / 2, s, s, 0, 0, lado, lado);
+      let q = .85, url;
+      do { url = c.toDataURL("image/jpeg", q); q -= .15; } while (url.length > 60000 && q > .2);
+      ok(url);
+    };
+    img.onerror = () => { URL.revokeObjectURL(img.src); mal(new Error("Imagen no válida")); };
+    img.src = URL.createObjectURL(file);
   });
 }
 
-// Suma/resta con transacción: si dos personas pulsan a la vez no se pierde ningún clic
-async function cambiarValor(tipo, p, m, d) {
-  if (!ONLINE) {
-    const ahora = Math.max(0, datos[tipo][p][m.id] + d);
-    datos[tipo][p][m.id] = ahora; guardarLocal();
-    return ahora;
-  }
-  const res = await runTransaction(ref(db, `${tipo}/${p}/${m.id}`), v => Math.max(0, (v || 0) + d));
-  return res.snapshot.val() || 0;
-}
-async function reiniciar(p) {
-  if (!ONLINE) { TIPOS.forEach(t => MODULOS.forEach(m => datos[t][p][m.id] = 0)); guardarLocal(); render(); return; }
-  const cambios = {};
-  TIPOS.forEach(t => MODULOS.forEach(m => cambios[`${t}/${p}/${m.id}`] = 0));
-  await update(ref(db), cambios);
-}
-async function reemplazarTodo(nuevo) {
-  if (!ONLINE) { datos = nuevo; guardarLocal(); render(); return; }
-  const cambios = {};
-  TIPOS.forEach(t => PERSONAS.forEach(p => MODULOS.forEach(m => cambios[`${t}/${p}/${m.id}`] = nuevo[t][p][m.id])));
-  await update(ref(db), cambios);
-}
+$("userBtn").onclick = abrirPerfil;
+$("perfilCerrar").onclick = cerrarPerfil;
+$("perfil").onclick = ev => { if (ev.target === $("perfil")) cerrarPerfil(); };
+document.addEventListener("keydown", ev => { if (ev.key === "Escape") cerrarPerfil(); });
+$("fPerfil").elements.nombre.oninput = pintarPerfil;
+$("fotoCambiar").onclick = () => $("fotoInput").click();
+$("fotoQuitar").onclick = () => { fotoNueva = null; pintarPerfil(); };
+$("fotoInput").onchange = async ev => {
+  const file = ev.target.files[0];
+  ev.target.value = "";
+  if (!file) return;
+  try { fotoNueva = await reducirFoto(file); pintarPerfil(); }
+  catch (e) { $("perfilMsg").textContent = "No se pudo leer la imagen"; }
+};
+$("fPerfil").onsubmit = async ev => {
+  ev.preventDefault();
+  const cambios = { nombre: ev.target.elements.nombre.value.trim() || null };
+  if (fotoNueva !== undefined) cambios.foto = fotoNueva;
+  ocupado(ev.target, true);
+  try {
+    await update(ref(db, `perfiles/${yo}`), cambios);
+    cerrarPerfil();
+    toast("Perfil guardado");
+  } catch (e) {
+    console.error(e);
+    $("perfilMsg").textContent = "No se pudo guardar el perfil";
+  } finally { ocupado(ev.target, false); }
+};
+
+// ── Interfaz ─────────────────────────────────────────────────
 
 function setSync(cls, txt) {
-  const s = document.getElementById("sync");
+  const s = $("sync");
   s.className = "sync " + cls;
   s.querySelector("span").textContent = txt;
 }
-
-// ── Interfaz ─────────────────────────────────────────────────
 
 function estado(f, max) {
   if (f > max)  return { cls: "dead", txt: "Evaluación continua perdida" };
@@ -425,7 +741,7 @@ function estado(f, max) {
 
 let toastT;
 function toast(msg, alert) {
-  const t = document.getElementById("toast");
+  const t = $("toast");
   t.textContent = msg;
   t.className = "toast show" + (alert ? " alert" : "");
   clearTimeout(toastT);
@@ -445,20 +761,25 @@ function stats(p) {
   return { p, total, retrasos, peor, peorPct, perdidos, peligro };
 }
 
+function renderUser() {
+  $("userAv").innerHTML = avatar(yo);
+  $("userName").textContent = nombre(yo);
+}
+
 function renderStats() {
   const s = stats(actual);
   const grupo = PERSONAS.reduce((a, p) => a + stats(p).total, 0);
   const margen = s.peor ? `${s.peor.nombre} (${Math.round(s.peorPct * 100)}%)` : "ninguno";
-  document.getElementById("stats").innerHTML = `
-    <div><b>${s.total}</b><span>Tus faltas</span></div>
+  $("stats").innerHTML = `
+    <div><b>${s.total}</b><span>${actual === yo ? "Tus faltas" : "Sus faltas"}</span></div>
     <div><b>${s.peligro}</b><span>Módulos en riesgo</span></div>
     <div><b>${grupo}</b><span>Faltas del grupo</span></div>
-    <div class="full">Viendo a <strong>${actual}</strong> · módulo más comprometido: <strong>${margen}</strong> · retrasos: <strong>${s.retrasos}</strong></div>`;
+    <div class="full">Viendo a <strong>${esc(nombre(actual))}</strong> · módulo más comprometido: <strong>${margen}</strong> · retrasos: <strong>${s.retrasos}</strong></div>`;
 }
 
 function renderRanking() {
   const lista = PERSONAS.map(stats).sort((a, b) => b.total - a.total || b.peorPct - a.peorPct);
-  const cont = document.getElementById("rankingList");
+  const cont = $("rankingList");
   cont.innerHTML = "";
   lista.forEach((r, i) => {
     const lider = i === 0 && r.total > 0;
@@ -471,32 +792,41 @@ function renderRanking() {
     el.innerHTML = `
       ${lider ? '<span class="badge">Más faltas</span>' : ""}
       <div class="pos">#${i + 1}</div>
-      <div class="avatar">${r.p[0]}</div>
-      <div class="who">${r.p}</div>
+      <div class="avatar">${avatar(r.p)}</div>
+      <div class="who">${esc(nombre(r.p))}${r.p === yo ? ' <span class="tu">(tú)</span>' : ""}</div>
       <div class="tot">${r.total}<small>faltas</small></div>
       <div class="det">${det}</div>`;
     el.onclick = () => {
       actual = r.p; render();
-      document.getElementById("modulos").scrollIntoView();
+      $("modulos").scrollIntoView();
     };
     cont.appendChild(el);
   });
 }
 
 function renderPlayers() {
-  const cont = document.getElementById("players");
+  const cont = $("players");
   cont.innerHTML = "";
   PERSONAS.forEach(p => {
     const b = document.createElement("button");
     b.className = "pill" + (p === actual ? "" : " ghost");
-    b.textContent = p;
+    b.textContent = nombre(p);
     b.onclick = () => { actual = p; render(); };
     cont.appendChild(b);
   });
+  const ro = $("ro");
+  ro.hidden = actual === yo;
+  ro.innerHTML = `Estás viendo a <strong>${esc(nombre(actual))}</strong>: solo puedes modificar tus propias faltas.`;
 }
 
 function renderGrid() {
-  const cont = document.getElementById("grid");
+  const cont = $("grid");
+  const mio = actual === yo;
+  const botones = que => mio ? `
+        <div class="btns${que === "retraso" ? " sm" : ""}">
+          <button aria-label="Quitar ${que}">−</button>
+          <button class="plus" aria-label="Añadir ${que}">+</button>
+        </div>` : "";
   cont.innerHTML = "";
   MODULOS.forEach(m => {
     const f = datos.faltas[actual][m.id];
@@ -514,88 +844,91 @@ function renderGrid() {
       <div class="st">${e.txt}</div>
       <div class="bar"><div class="fill" style="width:${pct}%"></div></div>
       <div class="mbot">
-        <div class="cnt">${f}<span> / ${m.max}</span></div>
-        <div class="btns">
-          <button aria-label="Quitar falta">−</button>
-          <button class="plus" aria-label="Añadir falta">+</button>
-        </div>
+        <div class="cnt">${f}<span> / ${m.max}</span></div>${botones("falta")}
       </div>
       <div class="late">
-        <div class="lcnt">Retrasos <b>${tarde}</b></div>
-        <div class="btns sm">
-          <button aria-label="Quitar retraso">−</button>
-          <button class="plus" aria-label="Añadir retraso">+</button>
-        </div>
+        <div class="lcnt">Retrasos <b>${tarde}</b></div>${botones("retraso")}
       </div>`;
-    const [menos, mas, menosR, masR] = el.querySelectorAll(".btns button");
-    menos.onclick = () => cambiar("faltas", m, -1);
-    mas.onclick = () => cambiar("faltas", m, 1);
-    menosR.onclick = () => cambiar("retrasos", m, -1);
-    masR.onclick = () => cambiar("retrasos", m, 1);
+    if (mio) {
+      const [menos, mas, menosR, masR] = el.querySelectorAll(".btns button");
+      menos.onclick = () => cambiar("faltas", m, -1);
+      mas.onclick = () => cambiar("faltas", m, 1);
+      menosR.onclick = () => cambiar("retrasos", m, -1);
+      masR.onclick = () => cambiar("retrasos", m, 1);
+    }
     if (ultimo && ultimo.id === m.id) el.querySelector(ultimo.tipo === "faltas" ? ".cnt" : ".lcnt b").classList.add("pop");
     cont.appendChild(el);
   });
   ultimo = null;
 }
 
+// Suma/resta con transacción: si se pulsa desde dos dispositivos a la vez no se pierde ningún clic
 async function cambiar(tipo, m, d) {
-  const p = actual;
-  if (d < 0 && datos[tipo][p][m.id] === 0) return;
+  if (!yo || actual !== yo) return; // solo tus propias faltas (las reglas también lo impiden)
+  if (d < 0 && datos[tipo][yo][m.id] === 0) return;
   ultimo = { tipo, id: m.id };
   let ahora;
   try {
-    ahora = await cambiarValor(tipo, p, m, d);
+    const res = await runTransaction(ref(db, `${tipo}/${yo}/${m.id}`), v => Math.max(0, (v || 0) + d));
+    ahora = res.snapshot.val() || 0;
   } catch (e) {
     console.error(e);
     return toast("No se pudo guardar el cambio", true);
   }
   if (tipo === "faltas" && d > 0) {
-    if (ahora === m.max) toast(`${p}: límite alcanzado en ${m.nombre}`, true);
-    else if (ahora > m.max) toast(`${p} ha perdido la evaluación continua en ${m.nombre}`, true);
-    else if (ahora === Math.ceil(m.max * .75)) toast(`${p}: ${m.nombre} se acerca al límite`);
+    if (ahora === m.max) toast(`Límite alcanzado en ${m.nombre}`, true);
+    else if (ahora > m.max) toast(`Has perdido la evaluación continua en ${m.nombre}`, true);
+    else if (ahora === Math.ceil(m.max * .75)) toast(`${m.nombre} se acerca al límite`);
   }
-  if (!ONLINE) render();
 }
 
-function render() { renderStats(); renderRanking(); renderPlayers(); renderGrid(); }
+function render() {
+  if (!yo) return;
+  renderUser(); renderStats(); renderRanking(); renderPlayers(); renderGrid();
+}
 
-document.getElementById("reset").onclick = async () => {
-  const p = actual;
-  if (!confirm(`¿Poner a 0 las faltas y retrasos de ${p}?`)) return;
-  try { await reiniciar(p); toast(`${p} reiniciado`); }
+// ── Datos (pie de página) ────────────────────────────────────
+
+function escribirMios(faltas, retrasos) {
+  const cambios = {};
+  MODULOS.forEach(m => {
+    cambios[`faltas/${yo}/${m.id}`] = faltas[m.id];
+    cambios[`retrasos/${yo}/${m.id}`] = retrasos[m.id];
+  });
+  return update(ref(db), cambios);
+}
+
+$("reset").onclick = async () => {
+  if (!yo || !confirm("¿Poner a 0 todas tus faltas y retrasos?")) return;
+  try { await escribirMios(vacio()[yo], vacio()[yo]); toast("Faltas y retrasos reiniciados"); }
   catch (e) { console.error(e); toast("No se pudo reiniciar", true); }
 };
-document.getElementById("exportar").onclick = () => {
+$("exportar").onclick = () => {
   const blob = new Blob([JSON.stringify(datos, null, 2)], { type: "application/json" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob); a.download = "faltas-2dam.json"; a.click();
   URL.revokeObjectURL(a.href);
 };
-document.getElementById("importar").onclick = () => document.getElementById("fileInput").click();
-document.getElementById("fileInput").onchange = ev => {
+$("importar").onclick = () => $("fileInput").click();
+$("fileInput").onchange = ev => {
   const file = ev.target.files[0];
-  if (!file) return;
+  ev.target.value = "";
+  if (!file || !yo) return;
   const r = new FileReader();
   r.onload = async () => {
-    let nuevo;
+    let faltas, retrasos;
     try {
       const obj = JSON.parse(r.result);
-      // Formato nuevo { faltas, retrasos }; los archivos antiguos solo traen las faltas
-      nuevo = obj.faltas
-        ? { faltas: normalizar(obj.faltas), retrasos: normalizar(obj.retrasos) }
-        : { faltas: normalizar(obj), retrasos: vacio() };
-    }
-    catch (e) { return toast("Archivo no válido", true); }
-    if (ONLINE && !confirm("Esto sobrescribirá las faltas y retrasos de todo el grupo. ¿Continuar?")) return;
-    try { await reemplazarTodo(nuevo); toast("Datos importados"); }
+      // Formato { faltas, retrasos }; los archivos antiguos solo traen las faltas
+      faltas = normalizar(obj.faltas || obj)[yo];
+      retrasos = normalizar(obj.retrasos)[yo];
+    } catch (e) { return toast("Archivo no válido", true); }
+    if (!confirm("Esto sustituirá tus faltas y retrasos por los del archivo. ¿Continuar?")) return;
+    try { await escribirMios(faltas, retrasos); toast("Datos importados"); }
     catch (e) { console.error(e); toast("No se pudieron importar", true); }
   };
   r.readAsText(file);
-  ev.target.value = "";
 };
-
-render();
-escucharCambios();
 </script>
 </body>
 </html>

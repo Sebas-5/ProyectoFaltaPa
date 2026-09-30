@@ -148,6 +148,14 @@
   .btns button.plus:hover { box-shadow: 0 0 18px rgba(34,184,230,.6); color: #fff; }
   .btns button:active { transform: scale(.92); }
 
+  .late {
+    display: flex; justify-content: space-between; align-items: center;
+    border-top: 1px solid var(--border-soft); margin-top: 16px; padding-top: 12px;
+  }
+  .lcnt { font-size: .8rem; color: var(--muted); }
+  .lcnt b { display: inline-block; color: var(--text); font-weight: 600; font-size: 1rem; margin-left: 6px; }
+  .btns.sm button { width: 28px; height: 28px; font-size: .95rem; }
+
   .mod.warn { --c: var(--warn); }
   .mod.max, .mod.dead { --c: var(--bad); }
   .mod.dead { border-color: var(--bad); background: rgba(255,90,106,.08); }
@@ -241,8 +249,8 @@
   <section id="modulos">
     <div class="head">
       <div class="over">Módulos</div>
-      <h2>Faltas por asignatura</h2>
-      <p>Naranja al acercarte al límite, rojo al alcanzarlo.</p>
+      <h2>Faltas y retrasos por asignatura</h2>
+      <p>Naranja al acercarte al límite de faltas, rojo al alcanzarlo. Los retrasos se apuntan aparte, debajo de cada módulo.</p>
     </div>
     <div class="players" id="players"></div>
     <div class="grid" id="grid"></div>
@@ -307,8 +315,9 @@ const MODULOS = [
   { id: "CIBER", nombre: "Ciberseguridad", corto: "CIB", max: 16, horas: 96 }
 ];
 const PERSONAS = ["Sebastian", "Matías", "Ian", "Joaquín"];
-const KEY = "faltas2dam_v1";
-const RUTA = "faltas"; // nodo raíz en la base de datos: faltas/{persona}/{modulo}
+// Cada tipo es un nodo raíz en la base de datos: {tipo}/{persona}/{modulo}
+const TIPOS = ["faltas", "retrasos"];
+const KEYS = { faltas: "faltas2dam_v1", retrasos: "retrasos2dam_v1" };
 
 const ONLINE = Boolean(firebaseConfig.apiKey && firebaseConfig.databaseURL);
 // El SDK solo se descarga si hay configuración, así el modo local funciona sin internet
@@ -320,9 +329,9 @@ if (ONLINE) {
   db = sdk.getDatabase(initializeApp(firebaseConfig));
 }
 
-let datos = vacio();
+let datos = { faltas: vacio(), retrasos: vacio() };
 let actual = PERSONAS[0];
-let ultimo = null;
+let ultimo = null; // { tipo, id } del contador que hay que animar
 
 function vacio() {
   const d = {};
@@ -344,54 +353,59 @@ function normalizar(g) {
 // se encarga de actualizar `datos` y repintar en todos los navegadores.
 // En modo local se guarda en localStorage como antes.
 
-function cargarLocal() {
-  try { return normalizar(JSON.parse(localStorage.getItem(KEY))); } catch (e) { return vacio(); }
+function cargarLocal(tipo) {
+  try { return normalizar(JSON.parse(localStorage.getItem(KEYS[tipo]))); } catch (e) { return vacio(); }
 }
-function guardarLocal() { try { localStorage.setItem(KEY, JSON.stringify(datos)); } catch (e) {} }
+function guardarLocal() {
+  TIPOS.forEach(t => { try { localStorage.setItem(KEYS[t], JSON.stringify(datos[t])); } catch (e) {} });
+}
 
 function escucharCambios() {
   if (!ONLINE) {
-    datos = cargarLocal();
+    TIPOS.forEach(t => datos[t] = cargarLocal(t));
     setSync("off", "Modo local");
     render();
     return;
   }
-  onValue(ref(db, RUTA), snap => {
+  TIPOS.forEach(tipo => onValue(ref(db, tipo), snap => {
     const nuevos = normalizar(snap.val());
-    // Animar los módulos de la persona visible que haya cambiado otra persona
-    if (!ultimo) ultimo = MODULOS.find(m => nuevos[actual][m.id] !== datos[actual][m.id])?.id ?? null;
-    datos = nuevos;
+    // Animar el contador de la persona visible que haya cambiado otra persona
+    if (!ultimo) {
+      const m = MODULOS.find(m => nuevos[actual][m.id] !== datos[tipo][actual][m.id]);
+      if (m) ultimo = { tipo, id: m.id };
+    }
+    datos[tipo] = nuevos;
     render();
   }, err => {
     console.error(err);
     toast("No se pudo leer la base de datos", true);
-  });
+  }));
   onValue(ref(db, ".info/connected"), snap => {
     snap.val() ? setSync("on", "En directo") : setSync("", "Reconectando…");
   });
 }
 
 // Suma/resta con transacción: si dos personas pulsan a la vez no se pierde ningún clic
-async function cambiarValor(p, m, d) {
+async function cambiarValor(tipo, p, m, d) {
   if (!ONLINE) {
-    const ahora = Math.max(0, datos[p][m.id] + d);
-    datos[p][m.id] = ahora; guardarLocal();
+    const ahora = Math.max(0, datos[tipo][p][m.id] + d);
+    datos[tipo][p][m.id] = ahora; guardarLocal();
     return ahora;
   }
-  const res = await runTransaction(ref(db, `${RUTA}/${p}/${m.id}`), v => Math.max(0, (v || 0) + d));
+  const res = await runTransaction(ref(db, `${tipo}/${p}/${m.id}`), v => Math.max(0, (v || 0) + d));
   return res.snapshot.val() || 0;
 }
 async function reiniciar(p) {
-  if (!ONLINE) { MODULOS.forEach(m => datos[p][m.id] = 0); guardarLocal(); render(); return; }
+  if (!ONLINE) { TIPOS.forEach(t => MODULOS.forEach(m => datos[t][p][m.id] = 0)); guardarLocal(); render(); return; }
   const cambios = {};
-  MODULOS.forEach(m => cambios[`${p}/${m.id}`] = 0);
-  await update(ref(db, RUTA), cambios);
+  TIPOS.forEach(t => MODULOS.forEach(m => cambios[`${t}/${p}/${m.id}`] = 0));
+  await update(ref(db), cambios);
 }
 async function reemplazarTodo(nuevo) {
   if (!ONLINE) { datos = nuevo; guardarLocal(); render(); return; }
   const cambios = {};
-  PERSONAS.forEach(p => MODULOS.forEach(m => cambios[`${p}/${m.id}`] = nuevo[p][m.id]));
-  await update(ref(db, RUTA), cambios);
+  TIPOS.forEach(t => PERSONAS.forEach(p => MODULOS.forEach(m => cambios[`${t}/${p}/${m.id}`] = nuevo[t][p][m.id])));
+  await update(ref(db), cambios);
 }
 
 function setSync(cls, txt) {
@@ -419,15 +433,16 @@ function toast(msg, alert) {
 }
 
 function stats(p) {
-  let total = 0, peor = null, peorPct = -1, perdidos = 0, peligro = 0;
+  let total = 0, retrasos = 0, peor = null, peorPct = -1, perdidos = 0, peligro = 0;
   MODULOS.forEach(m => {
-    const f = datos[p][m.id];
+    const f = datos.faltas[p][m.id];
+    retrasos += datos.retrasos[p][m.id];
     total += f;
     if (f > m.max) perdidos++;
     if (f / m.max >= .75) peligro++;
     if (f > 0 && f / m.max > peorPct) { peorPct = f / m.max; peor = m; }
   });
-  return { p, total, peor, peorPct, perdidos, peligro };
+  return { p, total, retrasos, peor, peorPct, perdidos, peligro };
 }
 
 function renderStats() {
@@ -438,7 +453,7 @@ function renderStats() {
     <div><b>${s.total}</b><span>Tus faltas</span></div>
     <div><b>${s.peligro}</b><span>Módulos en riesgo</span></div>
     <div><b>${grupo}</b><span>Faltas del grupo</span></div>
-    <div class="full">Viendo a <strong>${actual}</strong> · módulo más comprometido: <strong>${margen}</strong></div>`;
+    <div class="full">Viendo a <strong>${actual}</strong> · módulo más comprometido: <strong>${margen}</strong> · retrasos: <strong>${s.retrasos}</strong></div>`;
 }
 
 function renderRanking() {
@@ -448,7 +463,8 @@ function renderRanking() {
   lista.forEach((r, i) => {
     const lider = i === 0 && r.total > 0;
     let det = "Sin faltas por ahora";
-    if (r.peor) det = `Peor: ${r.peor.nombre} · ${datos[r.p][r.peor.id]}/${r.peor.max}`;
+    if (r.peor) det = `Peor: ${r.peor.nombre} · ${datos.faltas[r.p][r.peor.id]}/${r.peor.max}`;
+    if (r.retrasos) det += ` · ${r.retrasos} retraso${r.retrasos > 1 ? "s" : ""}`;
     if (r.perdidos) det += `<br><span class="lost">${r.perdidos} módulo${r.perdidos > 1 ? "s" : ""} perdido${r.perdidos > 1 ? "s" : ""}</span>`;
     const el = document.createElement("div");
     el.className = "rk" + (lider ? " first" : "") + (r.p === actual ? " sel" : "");
@@ -483,7 +499,8 @@ function renderGrid() {
   const cont = document.getElementById("grid");
   cont.innerHTML = "";
   MODULOS.forEach(m => {
-    const f = datos[actual][m.id];
+    const f = datos.faltas[actual][m.id];
+    const tarde = datos.retrasos[actual][m.id];
     const e = estado(f, m.max);
     const pct = Math.min(100, (f / m.max) * 100);
     const el = document.createElement("div");
@@ -502,28 +519,37 @@ function renderGrid() {
           <button aria-label="Quitar falta">−</button>
           <button class="plus" aria-label="Añadir falta">+</button>
         </div>
+      </div>
+      <div class="late">
+        <div class="lcnt">Retrasos <b>${tarde}</b></div>
+        <div class="btns sm">
+          <button aria-label="Quitar retraso">−</button>
+          <button class="plus" aria-label="Añadir retraso">+</button>
+        </div>
       </div>`;
-    const [menos, mas] = el.querySelectorAll(".btns button");
-    menos.onclick = () => cambiar(m, -1);
-    mas.onclick = () => cambiar(m, 1);
-    if (ultimo === m.id) el.querySelector(".cnt").classList.add("pop");
+    const [menos, mas, menosR, masR] = el.querySelectorAll(".btns button");
+    menos.onclick = () => cambiar("faltas", m, -1);
+    mas.onclick = () => cambiar("faltas", m, 1);
+    menosR.onclick = () => cambiar("retrasos", m, -1);
+    masR.onclick = () => cambiar("retrasos", m, 1);
+    if (ultimo && ultimo.id === m.id) el.querySelector(ultimo.tipo === "faltas" ? ".cnt" : ".lcnt b").classList.add("pop");
     cont.appendChild(el);
   });
   ultimo = null;
 }
 
-async function cambiar(m, d) {
+async function cambiar(tipo, m, d) {
   const p = actual;
-  if (d < 0 && datos[p][m.id] === 0) return;
-  ultimo = m.id;
+  if (d < 0 && datos[tipo][p][m.id] === 0) return;
+  ultimo = { tipo, id: m.id };
   let ahora;
   try {
-    ahora = await cambiarValor(p, m, d);
+    ahora = await cambiarValor(tipo, p, m, d);
   } catch (e) {
     console.error(e);
     return toast("No se pudo guardar el cambio", true);
   }
-  if (d > 0) {
+  if (tipo === "faltas" && d > 0) {
     if (ahora === m.max) toast(`${p}: límite alcanzado en ${m.nombre}`, true);
     else if (ahora > m.max) toast(`${p} ha perdido la evaluación continua en ${m.nombre}`, true);
     else if (ahora === Math.ceil(m.max * .75)) toast(`${p}: ${m.nombre} se acerca al límite`);
@@ -535,7 +561,7 @@ function render() { renderStats(); renderRanking(); renderPlayers(); renderGrid(
 
 document.getElementById("reset").onclick = async () => {
   const p = actual;
-  if (!confirm(`¿Poner a 0 las faltas de ${p}?`)) return;
+  if (!confirm(`¿Poner a 0 las faltas y retrasos de ${p}?`)) return;
   try { await reiniciar(p); toast(`${p} reiniciado`); }
   catch (e) { console.error(e); toast("No se pudo reiniciar", true); }
 };
@@ -552,9 +578,15 @@ document.getElementById("fileInput").onchange = ev => {
   const r = new FileReader();
   r.onload = async () => {
     let nuevo;
-    try { nuevo = normalizar(JSON.parse(r.result)); }
+    try {
+      const obj = JSON.parse(r.result);
+      // Formato nuevo { faltas, retrasos }; los archivos antiguos solo traen las faltas
+      nuevo = obj.faltas
+        ? { faltas: normalizar(obj.faltas), retrasos: normalizar(obj.retrasos) }
+        : { faltas: normalizar(obj), retrasos: vacio() };
+    }
     catch (e) { return toast("Archivo no válido", true); }
-    if (ONLINE && !confirm("Esto sobrescribirá las faltas de todo el grupo. ¿Continuar?")) return;
+    if (ONLINE && !confirm("Esto sobrescribirá las faltas y retrasos de todo el grupo. ¿Continuar?")) return;
     try { await reemplazarTodo(nuevo); toast("Datos importados"); }
     catch (e) { console.error(e); toast("No se pudieron importar", true); }
   };

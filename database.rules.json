@@ -9,6 +9,16 @@
           ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 200 && ($modulo === 'SSG' || $modulo === 'PGV' || $modulo === 'FOL' || $modulo === 'PROY' || $modulo === 'SOST' || $modulo === 'AD' || $modulo === 'DI' || $modulo === 'PGL' || $modulo === 'CIBER')"
         }
       }
+    },
+    "retrasos": {
+      ".read": true,
+      "$persona": {
+        ".validate": "$persona === 'Sebastian' || $persona === 'Matías' || $persona === 'Ian' || $persona === 'Joaquín'",
+        "$modulo": {
+          ".write": true,
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 200 && ($modulo === 'SSG' || $modulo === 'PGV' || $modulo === 'FOL' || $modulo === 'PROY' || $modulo === 'SOST' || $modulo === 'AD' || $modulo === 'DI' || $modulo === 'PGL' || $modulo === 'CIBER')"
+        }
+      }
     }
   }
 }

@@ -6,7 +6,7 @@ al momento sin recargar.
 
 ## Cómo funciona
 
-- Todo está en `index.html` (HTML + CSS + JS, sin compilar nada).
+- Todo está en `index.html` (HTML + CSS + JS, sin compilar nada). El logo y los iconos están en `img/`.
 - Para entrar hay que **registrarse con un código de invitación**. Hay un código por
   persona y solo se puede usar una vez: al registrarte, tu cuenta queda vinculada a
   tus faltas.

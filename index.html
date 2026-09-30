@@ -4,6 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Faltas 2DAM</title>
+<meta name="description" content="Control de faltas y retrasos de 2DAM en tiempo real.">
+<meta name="theme-color" content="#1a2233">
+<link rel="icon" type="image/png" href="img/favicon.png" sizes="64x64">
+<link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+<!-- Vista previa al compartir el enlace (WhatsApp, Telegram…) -->
+<meta property="og:title" content="Faltas 2DAM">
+<meta property="og:description" content="Control de faltas y retrasos de 2DAM en tiempo real.">
+<meta property="og:image" content="https://sebas-5.github.io/ProyectoFaltaPa/img/logo.png">
+<meta property="og:url" content="https://sebas-5.github.io/ProyectoFaltaPa/">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;1,400;1,500&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -45,9 +54,8 @@
 
   /* NAV */
   nav { display: flex; justify-content: space-between; align-items: center; padding: 26px 0; }
-  .logo { display: flex; align-items: center; gap: 10px; font-weight: 600; letter-spacing: .08em; font-size: .85rem; }
-  .logo i { width: 22px; height: 22px; border-radius: 50%; background: var(--text); position: relative; display: inline-block; }
-  .logo i::after { content: ""; position: absolute; left: 11px; top: 0; width: 11px; height: 22px; border-radius: 0 11px 11px 0; background: var(--cyan); }
+  .logo { display: flex; align-items: center; gap: 10px; font-weight: 600; letter-spacing: .08em; font-size: .85rem; color: inherit; text-decoration: none; }
+  .logo img { width: 38px; height: 38px; border-radius: 50%; box-shadow: 0 0 14px rgba(34,184,230,.35); }
   .links { display: flex; align-items: center; gap: 28px; font-size: .85rem; }
   .links a { color: var(--muted); text-decoration: none; transition: color .15s; }
   .links a:hover { color: var(--text); }
@@ -270,7 +278,10 @@
     position: relative; z-index: 1; width: 100%; max-width: 400px; border: 1.5px solid var(--border); border-radius: 18px;
     background: rgba(19,26,40,.85); backdrop-filter: blur(6px); padding: 30px 26px;
   }
-  .card .logo { justify-content: center; margin-bottom: 18px; }
+  .card .logo { justify-content: center; margin-bottom: 14px; }
+  .card .logo img { width: 112px; height: 112px; box-shadow: 0 0 34px rgba(34,184,230,.45); }
+  .flogo { display: flex; align-items: center; gap: 10px; }
+  .flogo img { width: 34px; height: 34px; border-radius: 50%; }
   .card h2 { text-align: center; font-size: 1.9rem; margin-bottom: 4px; }
   .card .sub { text-align: center; color: var(--muted); font-size: .82rem; margin: 0 0 22px; line-height: 1.6; }
   .tabs { display: grid; grid-template-columns: 1fr 1fr; border: 1.5px solid var(--border); border-radius: 999px; padding: 3px; margin-bottom: 22px; }
@@ -335,7 +346,7 @@
 
 <div class="wrap">
   <nav>
-    <div class="logo"><i></i>2DAM</div>
+    <a class="logo" href="#inicio"><img src="img/logo-192.png" alt="">2DAM</a>
     <div class="links">
       <span class="sync" id="sync"><i></i><span>Conectando…</span></span>
       <a href="#inicio">Inicio</a>
@@ -385,7 +396,7 @@
 <footer>
   <div class="fwrap">
     <div>
-      <h4>Faltas 2DAM</h4>
+      <h4 class="flogo"><img src="img/logo-192.png" alt="">Faltas 2DAM</h4>
       <p>Los datos se guardan en una base de datos compartida y se actualizan en tiempo real para todo el grupo.</p>
     </div>
     <div>
@@ -412,7 +423,7 @@
 <div class="auth" id="auth">
   <div class="glow g1"></div>
   <div class="card">
-    <div class="logo"><i></i>2DAM</div>
+    <div class="logo"><img src="img/logo.png" alt="Logo de Faltas 2DAM"></div>
     <h2>Faltas 2DAM</h2>
     <p class="sub" id="authSub">Comprobando sesión…</p>
 

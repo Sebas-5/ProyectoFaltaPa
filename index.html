@@ -90,29 +90,79 @@
   .head p { color: var(--muted); font-size: .88rem; max-width: 520px; margin: 0 auto; line-height: 1.7; }
 
   /* RANKING */
-  .ranking { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .ranking { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; position: relative; }
   .rk {
-    border: 1.5px solid var(--border); border-radius: 16px; padding: 22px 20px; cursor: pointer;
-    background: rgba(19,26,40,.35); transition: all .2s; position: relative;
+    --tier: var(--border); --tier-txt: var(--cyan); --tier-bg: rgba(19,26,40,.35);
+    border: 1.5px solid var(--tier); border-radius: 16px; padding: 22px 20px; cursor: pointer;
+    background: var(--tier-bg); transition: transform .2s, box-shadow .2s; position: relative; overflow: hidden;
   }
-  .rk:hover { border-color: var(--cyan); transform: translateY(-3px); }
-  .rk.sel { border-color: var(--cyan); background: var(--cyan-soft); }
-  .rk .pos { font-size: .75rem; color: var(--cyan); font-weight: 500; letter-spacing: .05em; }
+  .rk:hover { transform: translateY(-3px); }
+  .rk.sel { outline: 2px solid var(--cyan); outline-offset: 4px; }
+  .rk .pos { font-size: .75rem; color: var(--tier-txt); font-weight: 600; letter-spacing: .05em; }
   .rk .avatar {
-    width: 44px; height: 44px; border-radius: 50%; border: 1.5px solid var(--border);
-    display: grid; place-items: center; font-family: "Playfair Display", serif; font-style: italic; font-size: 1.2rem;
-    margin: 14px 0 10px;
+    width: 48px; height: 48px; border-radius: 50%; border: 2px solid var(--tier);
+    display: grid; place-items: center; font-family: "Playfair Display", serif; font-style: italic; font-size: 1.25rem;
+    margin: 14px 0 10px; cursor: zoom-in; transition: transform .2s, box-shadow .2s;
   }
+  .rk .avatar:hover { transform: scale(1.12); box-shadow: 0 0 0 3px var(--cyan); }
   .rk .who { font-weight: 500; font-size: 1.05rem; }
-  .rk .tot { font-size: 2.4rem; font-weight: 600; line-height: 1.1; margin-top: 6px; }
+  .rk .tot { font-size: 2.4rem; font-weight: 600; line-height: 1.1; margin-top: 6px; color: var(--tier-txt); }
   .rk .tot small { font-size: .75rem; font-weight: 400; color: var(--muted); margin-left: 4px; }
   .rk .det { font-size: .75rem; color: var(--muted); margin-top: 8px; line-height: 1.5; min-height: 2.2em; }
   .rk .det .lost { color: var(--bad); }
-  .rk.first { border-color: var(--bad); }
-  .rk.first .pos, .rk.first .tot { color: var(--bad); }
-  .badge {
-    position: absolute; top: 18px; right: 16px; font-size: .65rem; font-weight: 500;
-    border: 1px solid var(--bad); color: var(--bad); border-radius: 999px; padding: 3px 10px;
+  .medalla { position: absolute; top: 14px; right: 14px; font-size: 1.9rem; line-height: 1; filter: drop-shadow(0 2px 6px rgba(0,0,0,.4)); }
+  .titulo {
+    display: inline-block; font-size: .62rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase;
+    border: 1px solid var(--tier); color: var(--tier-txt); border-radius: 999px; padding: 2px 9px; margin-left: 6px; vertical-align: 1px;
+  }
+
+  /* 1º: premio dorado con brillo */
+  .rk.oro {
+    --tier: #f5c542; --tier-txt: #ffd76a;
+    --tier-bg: linear-gradient(150deg, rgba(245,197,66,.28), rgba(245,197,66,.06) 55%, rgba(19,26,40,.4));
+    box-shadow: 0 0 28px rgba(245,197,66,.28), inset 0 0 0 1px rgba(255,215,106,.15);
+  }
+  .rk.oro::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(115deg, transparent 35%, rgba(255,240,190,.28) 50%, transparent 65%);
+    transform: translateX(-120%); animation: brillo 3.2s ease-in-out infinite;
+  }
+  .rk.oro .medalla { font-size: 2.4rem; animation: flota 2.4s ease-in-out infinite; }
+  .rk.oro .avatar { box-shadow: 0 0 16px rgba(245,197,66,.55); }
+  @keyframes brillo { 0%, 30% { transform: translateX(-120%); } 70%, 100% { transform: translateX(120%); } }
+  @keyframes flota { 50% { transform: translateY(-4px) rotate(-6deg); } }
+
+  /* 2º y 3º: plata y bronce */
+  .rk.plata { --tier: #c9d3df; --tier-txt: #e3e9f1; --tier-bg: linear-gradient(150deg, rgba(201,211,223,.16), rgba(19,26,40,.4) 60%); }
+  .rk.bronce { --tier: #b0703c; --tier-txt: #d58c52; --tier-bg: linear-gradient(150deg, rgba(176,112,60,.2), rgba(19,26,40,.4) 60%); }
+
+  /* Último: marrón caca */
+  .rk.caca {
+    --tier: #6b4423; --tier-txt: #a2703f;
+    --tier-bg: linear-gradient(150deg, rgba(107,68,35,.45), rgba(70,45,22,.35) 60%, rgba(19,26,40,.4));
+  }
+  .rk.caca .medalla { animation: tiembla 2.8s ease-in-out infinite; transform-origin: 50% 90%; }
+  .rk.caca .who, .rk.caca .det { color: #c9a27c; }
+  @keyframes tiembla { 0%, 80%, 100% { transform: rotate(0); } 85% { transform: rotate(-10deg); } 90% { transform: rotate(8deg); } 95% { transform: rotate(-4deg); } }
+
+  /* Corazón cuando Sebastian y Matías están juntos */
+  .amor {
+    position: absolute; z-index: 3; width: 96px; height: 88px; pointer-events: none;
+    transform: translate(-50%, -50%); animation: aparece .5s cubic-bezier(.3,1.6,.5,1) both;
+  }
+  .amor svg { width: 100%; height: 100%; fill: #ff4d6d; filter: drop-shadow(0 0 14px rgba(255,77,109,.8)); animation: latido 1.1s ease-in-out infinite; }
+  .amor i {
+    position: absolute; left: 50%; top: 30%; font-style: normal; font-size: 1.1rem; color: #ff8fa3; opacity: 0;
+    animation: sube 2.4s ease-out infinite;
+  }
+  .amor i:nth-of-type(2) { left: 20%; animation-delay: .8s; font-size: .9rem; }
+  .amor i:nth-of-type(3) { left: 78%; animation-delay: 1.6s; font-size: 1.3rem; }
+  @keyframes latido { 0%, 100% { transform: scale(1); } 15% { transform: scale(1.22); } 30% { transform: scale(1); } 45% { transform: scale(1.14); } }
+  @keyframes sube { 0% { opacity: 0; transform: translate(-50%, 0) scale(.6); } 20% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -80px) scale(1.2); } }
+  @keyframes aparece { from { transform: translate(-50%, -50%) scale(0); } }
+
+  @media (prefers-reduced-motion: reduce) {
+    .rk.oro::after, .medalla, .amor svg, .amor i { animation: none !important; }
   }
 
   /* SELECTOR */
@@ -248,6 +298,17 @@
   .cerrar { position: absolute; top: 14px; right: 16px; background: none; border: none; color: var(--muted); font-size: 1.4rem; cursor: pointer; line-height: 1; }
   .cerrar:hover { color: var(--text); }
 
+
+  /* VER PERFIL DE OTRO */
+  .ver { text-align: center; }
+  .av.grande { width: 200px; height: 200px; font-size: 5rem; border-width: 3px; margin: 6px auto 16px; box-shadow: 0 0 30px rgba(34,184,230,.25); }
+  .ver h2 { margin-bottom: 2px; }
+  .ver-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 18px 0 22px; padding: 16px 0; border-top: 1px solid var(--border-soft); border-bottom: 1px solid var(--border-soft); }
+  .ver-stats b { display: block; font-size: 1.6rem; font-weight: 600; }
+  .ver-stats span { font-size: .7rem; color: var(--muted); }
+  .ver .pill + .pill { margin-top: 10px; }
+  .ro .link { font-size: .8rem; margin-left: 6px; }
+
   @media (max-width: 900px) {
     .hero { grid-template-columns: 1fr; padding-top: 30px; }
     .ranking { grid-template-columns: repeat(2, 1fr); }
@@ -260,6 +321,7 @@
     .sync span, .user span:last-child { display: none; }
     .user { padding: 4px; }
     .ranking, .grid { grid-template-columns: 1fr; }
+    .av.grande { width: 160px; height: 160px; font-size: 4rem; }
     .stats { padding: 20px; }
     .stats b { font-size: 1.6rem; }
     .fwrap { grid-template-columns: 1fr; }
@@ -382,6 +444,19 @@
     </form>
 
     <p class="msg" id="authMsg"></p>
+  </div>
+</div>
+
+<!-- Ventana para ver el perfil de cualquier persona -->
+<div class="modal" id="verPerfil" hidden>
+  <div class="card ver">
+    <button class="cerrar" type="button" id="verCerrar" aria-label="Cerrar">×</button>
+    <span class="av grande" id="verAv"></span>
+    <h2 id="verNombre"></h2>
+    <p class="sub" id="verSub"></p>
+    <div class="ver-stats" id="verStats"></div>
+    <button class="pill" type="button" id="verModulos">Ver sus módulos</button>
+    <button class="pill ghost" type="button" id="verEditar">Editar mi perfil</button>
   </div>
 </div>
 
@@ -552,6 +627,7 @@ function salirDeDatos() {
 
 function mostrarAcceso(vista, msg = "") {
   $("perfil").hidden = true;
+  $("verPerfil").hidden = true;
   $("auth").hidden = false;
   $("tabs").hidden = vista === "vincular";
   $("fLogin").hidden = vista !== "login";
@@ -672,9 +748,9 @@ function pintarPerfil() {
   $("fotoQuitar").hidden = !foto;
 }
 
-// Recorta la imagen en cuadrado y la reduce a 160×160 en JPEG para que
+// Recorta la imagen en cuadrado y la reduce a 320×320 en JPEG para que
 // ocupe poco y se pueda guardar directamente en la base de datos
-function reducirFoto(file, lado = 160) {
+function reducirFoto(file, lado = 320) {
   return new Promise((ok, mal) => {
     const img = new Image();
     img.onload = () => {
@@ -698,7 +774,7 @@ function reducirFoto(file, lado = 160) {
 $("userBtn").onclick = abrirPerfil;
 $("perfilCerrar").onclick = cerrarPerfil;
 $("perfil").onclick = ev => { if (ev.target === $("perfil")) cerrarPerfil(); };
-document.addEventListener("keydown", ev => { if (ev.key === "Escape") cerrarPerfil(); });
+document.addEventListener("keydown", ev => { if (ev.key === "Escape") { cerrarPerfil(); cerrarVer(); } });
 $("fPerfil").elements.nombre.oninput = pintarPerfil;
 $("fotoCambiar").onclick = () => $("fotoInput").click();
 $("fotoQuitar").onclick = () => { fotoNueva = null; pintarPerfil(); };
@@ -777,22 +853,40 @@ function renderStats() {
     <div class="full">Viendo a <strong>${esc(nombre(actual))}</strong> · módulo más comprometido: <strong>${margen}</strong> · retrasos: <strong>${s.retrasos}</strong></div>`;
 }
 
+// Cada puesto tiene su "nivel": el que más falta se lleva el premio y el último, la caca
+const NIVELES = [
+  { cls: "oro",    medalla: "🏆", titulo: "Rey de las faltas" },
+  { cls: "plata",  medalla: "🥈" },
+  { cls: "bronce", medalla: "🥉" },
+  { cls: "caca",   medalla: "💩", titulo: "Último" }
+];
+function nivel(i, n) {
+  if (i === 0) return NIVELES[0];
+  if (i === n - 1) return NIVELES[3];
+  return i === 1 ? NIVELES[1] : NIVELES[2];
+}
+
+function ranking() {
+  return PERSONAS.map(stats).sort((a, b) => b.total - a.total || b.peorPct - a.peorPct);
+}
+
 function renderRanking() {
-  const lista = PERSONAS.map(stats).sort((a, b) => b.total - a.total || b.peorPct - a.peorPct);
+  const lista = ranking();
   const cont = $("rankingList");
   cont.innerHTML = "";
   lista.forEach((r, i) => {
-    const lider = i === 0 && r.total > 0;
+    const nv = nivel(i, lista.length);
     let det = "Sin faltas por ahora";
     if (r.peor) det = `Peor: ${r.peor.nombre} · ${datos.faltas[r.p][r.peor.id]}/${r.peor.max}`;
     if (r.retrasos) det += ` · ${r.retrasos} retraso${r.retrasos > 1 ? "s" : ""}`;
     if (r.perdidos) det += `<br><span class="lost">${r.perdidos} módulo${r.perdidos > 1 ? "s" : ""} perdido${r.perdidos > 1 ? "s" : ""}</span>`;
     const el = document.createElement("div");
-    el.className = "rk" + (lider ? " first" : "") + (r.p === actual ? " sel" : "");
+    el.className = `rk ${nv.cls}` + (r.p === actual ? " sel" : "");
+    el.dataset.p = r.p;
     el.innerHTML = `
-      ${lider ? '<span class="badge">Más faltas</span>' : ""}
-      <div class="pos">#${i + 1}</div>
-      <div class="avatar">${avatar(r.p)}</div>
+      <span class="medalla" aria-hidden="true">${nv.medalla}</span>
+      <div class="pos">#${i + 1}${nv.titulo ? `<span class="titulo">${nv.titulo}</span>` : ""}</div>
+      <div class="avatar" title="Ver perfil">${avatar(r.p)}</div>
       <div class="who">${esc(nombre(r.p))}${r.p === yo ? ' <span class="tu">(tú)</span>' : ""}</div>
       <div class="tot">${r.total}<small>faltas</small></div>
       <div class="det">${det}</div>`;
@@ -800,9 +894,56 @@ function renderRanking() {
       actual = r.p; render();
       $("modulos").scrollIntoView();
     };
+    el.querySelector(".avatar").onclick = ev => { ev.stopPropagation(); verPerfil(r.p); };
     cont.appendChild(el);
   });
+  // Si Sebastian y Matías quedan uno al lado del otro, sale un corazón entre los dos
+  const pos = p => lista.findIndex(r => r.p === p);
+  if (Math.abs(pos("Sebastian") - pos("Matías")) === 1) {
+    const amor = document.createElement("div");
+    amor.className = "amor";
+    amor.setAttribute("aria-hidden", "true");
+    amor.innerHTML = `<svg viewBox="0 0 32 29"><path d="M23.6 0c-3.4 0-6.3 2.7-7.6 5.6C14.7 2.7 11.8 0 8.4 0 3.8 0 0 3.8 0 8.4c0 9.4 9.5 11.9 16 21.2 6.1-9.3 16-12.1 16-21.2C32 3.8 28.2 0 23.6 0z"/></svg><i>❤</i><i>❤</i><i>❤</i>`;
+    cont.appendChild(amor);
+    colocarCorazon();
+  }
 }
+
+// Pone el corazón en el punto medio entre las dos tarjetas (sirve en cualquier tamaño de pantalla)
+function colocarCorazon() {
+  const cont = $("rankingList"), amor = cont.querySelector(".amor");
+  if (!amor) return;
+  const c = cont.getBoundingClientRect();
+  const [a, b] = ["Sebastian", "Matías"].map(p => cont.querySelector(`.rk[data-p="${p}"]`).getBoundingClientRect());
+  amor.style.left = `${(a.left + a.right + b.left + b.right) / 4 - c.left}px`;
+  amor.style.top = `${(a.top + a.bottom + b.top + b.bottom) / 4 - c.top}px`;
+}
+window.addEventListener("resize", colocarCorazon);
+document.fonts?.ready.then(colocarCorazon); // las fuentes cambian el tamaño de las tarjetas
+
+// ── Ver el perfil de cualquiera ─────────────────────────────
+
+let viendo = null;
+function verPerfil(p) {
+  viendo = p;
+  const lista = ranking(), i = lista.findIndex(r => r.p === p), r = lista[i];
+  const foto = perfiles[p]?.foto;
+  $("verAv").innerHTML = foto ? `<img src="${esc(foto)}" alt="Foto de ${esc(nombre(p))}">` : inicial(nombre(p));
+  $("verNombre").textContent = nombre(p);
+  $("verSub").textContent = `${nombre(p) !== p ? p + " · " : ""}#${i + 1} en el ranking ${nivel(i, lista.length).medalla}`;
+  $("verStats").innerHTML = `
+    <div><b>${r.total}</b><span>Faltas</span></div>
+    <div><b>${r.retrasos}</b><span>Retrasos</span></div>
+    <div><b>${r.peligro}</b><span>Módulos en riesgo</span></div>`;
+  $("verModulos").textContent = p === yo ? "Ver mis módulos" : "Ver sus módulos";
+  $("verEditar").hidden = p !== yo;
+  $("verPerfil").hidden = false;
+}
+function cerrarVer() { $("verPerfil").hidden = true; viendo = null; }
+$("verCerrar").onclick = cerrarVer;
+$("verPerfil").onclick = ev => { if (ev.target === $("verPerfil")) cerrarVer(); };
+$("verModulos").onclick = () => { actual = viendo; cerrarVer(); render(); $("modulos").scrollIntoView(); };
+$("verEditar").onclick = () => { cerrarVer(); abrirPerfil(); };
 
 function renderPlayers() {
   const cont = $("players");
@@ -816,7 +957,8 @@ function renderPlayers() {
   });
   const ro = $("ro");
   ro.hidden = actual === yo;
-  ro.innerHTML = `Estás viendo a <strong>${esc(nombre(actual))}</strong>: solo puedes modificar tus propias faltas.`;
+  ro.innerHTML = `Estás viendo a <strong>${esc(nombre(actual))}</strong>: solo puedes modificar tus propias faltas.<button class="link" type="button">Ver perfil</button>`;
+  ro.querySelector("button").onclick = () => verPerfil(actual);
 }
 
 function renderGrid() {
@@ -885,6 +1027,7 @@ async function cambiar(tipo, m, d) {
 function render() {
   if (!yo) return;
   renderUser(); renderStats(); renderRanking(); renderPlayers(); renderGrid();
+  if (viendo) verPerfil(viendo);
 }
 
 // ── Datos (pie de página) ────────────────────────────────────

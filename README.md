@@ -14,11 +14,15 @@ al momento sin recargar.
     "faltas": {
       "Sebastian": { "SSG": 2, "PGV": 0, "...": 0 },
       "Matías":    { "SSG": 1, "...": 0 }
+    },
+    "retrasos": {
+      "Sebastian": { "SSG": 1, "PGV": 0, "...": 0 }
     }
   }
   ```
 
-- La página se suscribe a `faltas` con `onValue`: cualquier cambio en la base de datos
+- Los retrasos se cuentan aparte de las faltas (no suman para el límite).
+- La página se suscribe a `faltas` y `retrasos` con `onValue`: cualquier cambio en la base de datos
   vuelve a pintar el ranking y los módulos en todos los navegadores abiertos.
 - Los botones `+` / `−` usan `runTransaction`, así que si dos personas pulsan a la vez
   no se pierde ningún clic.

@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Faltas 2DAM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;1,400;1,500&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #1a2233;
+    --bg-deep: #131a28;
+    --cyan: #22b8e6;
+    --cyan-soft: rgba(34, 184, 230, .15);
+    --text: #f3f6fa;
+    --muted: rgba(243, 246, 250, .6);
+    --border: rgba(243, 246, 250, .28);
+    --border-soft: rgba(243, 246, 250, .12);
+    --warn: #f5a524;
+    --bad: #ff5a6a;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  html, body { margin: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Poppins", system-ui, sans-serif;
+    font-weight: 300;
+    overflow-x: hidden;
+    position: relative;
+  }
+  /* brillos cian difuminados */
+  .glow {
+    position: absolute; border-radius: 50%; filter: blur(90px); pointer-events: none; z-index: 0;
+    background: radial-gradient(circle, rgba(34,184,230,.55), rgba(34,184,230,0) 70%);
+  }
+  .g1 { width: 520px; height: 520px; top: -120px; right: -120px; }
+  .g2 { width: 460px; height: 460px; top: 820px; left: -200px; opacity: .8; }
+  .g3 { width: 420px; height: 420px; top: 1500px; right: -160px; opacity: .7; }
+
+  .wrap { position: relative; z-index: 1; max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+
+  /* NAV */
+  nav { display: flex; justify-content: space-between; align-items: center; padding: 26px 0; }
+  .logo { display: flex; align-items: center; gap: 10px; font-weight: 600; letter-spacing: .08em; font-size: .85rem; }
+  .logo i { width: 22px; height: 22px; border-radius: 50%; background: var(--text); position: relative; display: inline-block; }
+  .logo i::after { content: ""; position: absolute; left: 11px; top: 0; width: 11px; height: 22px; border-radius: 0 11px 11px 0; background: var(--cyan); }
+  .links { display: flex; align-items: center; gap: 28px; font-size: .85rem; }
+  .links a { color: var(--muted); text-decoration: none; transition: color .15s; }
+  .links a:hover { color: var(--text); }
+
+  .pill {
+    display: inline-block; border-radius: 999px; padding: 10px 26px; font: inherit; font-size: .85rem; font-weight: 500;
+    cursor: pointer; text-decoration: none; transition: all .2s; border: 1.5px solid var(--cyan);
+    background: var(--cyan); color: #fff;
+  }
+  .pill:hover { box-shadow: 0 0 24px rgba(34,184,230,.5); }
+  .pill.ghost { background: transparent; border-color: var(--text); color: var(--text); }
+  .pill.ghost:hover { border-color: var(--cyan); color: var(--cyan); box-shadow: none; }
+  .links .pill { color: #fff; }
+
+  /* HERO */
+  .hero { display: grid; grid-template-columns: 1.1fr 1fr; gap: 40px; align-items: center; padding: 60px 0 70px; }
+  .over { color: var(--cyan); font-size: .8rem; font-weight: 500; letter-spacing: .05em; margin-bottom: 8px; }
+  h1 { font-family: "Poppins", sans-serif; font-weight: 600; font-size: clamp(2.2rem, 5vw, 3.4rem); line-height: 1.1; margin: 0 0 18px; }
+  .serif { font-family: "Playfair Display", serif; font-style: italic; font-weight: 400; }
+  .lead { color: var(--muted); font-size: .95rem; line-height: 1.7; max-width: 440px; margin: 0 0 30px; }
+  .cta { display: flex; gap: 12px; flex-wrap: wrap; }
+
+  .stats {
+    border: 1.5px solid var(--border); border-radius: 18px; padding: 28px;
+    background: rgba(19,26,40,.35); backdrop-filter: blur(6px);
+    display: grid; grid-template-columns: repeat(3, 1fr); text-align: center; gap: 12px;
+  }
+  .stats b { display: block; font-size: 2rem; font-weight: 600; }
+  .stats span { font-size: .72rem; color: var(--muted); }
+  .stats .full { grid-column: 1 / -1; border-top: 1px solid var(--border-soft); padding-top: 18px; margin-top: 8px; text-align: left; font-size: .85rem; color: var(--muted); }
+  .stats .full strong { color: var(--text); font-weight: 500; }
+
+  .divider { height: 1px; background: var(--border); margin: 0 auto; max-width: 80%; }
+
+  /* SECCIONES */
+  section { padding: 80px 0 20px; }
+  .head { text-align: center; margin-bottom: 40px; }
+  .head .over { margin-bottom: 4px; }
+  h2 { font-family: "Playfair Display", serif; font-style: italic; font-weight: 400; font-size: clamp(1.8rem, 4vw, 2.4rem); margin: 0 0 10px; }
+  .head p { color: var(--muted); font-size: .88rem; max-width: 520px; margin: 0 auto; line-height: 1.7; }
+
+  /* RANKING */
+  .ranking { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .rk {
+    border: 1.5px solid var(--border); border-radius: 16px; padding: 22px 20px; cursor: pointer;
+    background: rgba(19,26,40,.35); transition: all .2s; position: relative;
+  }
+  .rk:hover { border-color: var(--cyan); transform: translateY(-3px); }
+  .rk.sel { border-color: var(--cyan); background: var(--cyan-soft); }
+  .rk .pos { font-size: .75rem; color: var(--cyan); font-weight: 500; letter-spacing: .05em; }
+  .rk .avatar {
+    width: 44px; height: 44px; border-radius: 50%; border: 1.5px solid var(--border);
+    display: grid; place-items: center; font-family: "Playfair Display", serif; font-style: italic; font-size: 1.2rem;
+    margin: 14px 0 10px;
+  }
+  .rk .who { font-weight: 500; font-size: 1.05rem; }
+  .rk .tot { font-size: 2.4rem; font-weight: 600; line-height: 1.1; margin-top: 6px; }
+  .rk .tot small { font-size: .75rem; font-weight: 400; color: var(--muted); margin-left: 4px; }
+  .rk .det { font-size: .75rem; color: var(--muted); margin-top: 8px; line-height: 1.5; min-height: 2.2em; }
+  .rk .det .lost { color: var(--bad); }
+  .rk.first { border-color: var(--bad); }
+  .rk.first .pos, .rk.first .tot { color: var(--bad); }
+  .badge {
+    position: absolute; top: 18px; right: 16px; font-size: .65rem; font-weight: 500;
+    border: 1px solid var(--bad); color: var(--bad); border-radius: 999px; padding: 3px 10px;
+  }
+
+  /* SELECTOR */
+  .players { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin-bottom: 32px; }
+  .players .pill { padding: 9px 22px; }
+
+  /* MÓDULOS */
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .mod {
+    border: 1.5px solid var(--border); border-radius: 16px; padding: 22px;
+    background: rgba(19,26,40,.35); transition: border-color .2s;
+  }
+  .mod:hover { border-color: rgba(34,184,230,.7); }
+  .mtop { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+  .icon {
+    width: 40px; height: 40px; border-radius: 10px; border: 1.5px solid var(--border);
+    display: grid; place-items: center; font-size: .7rem; font-weight: 600; letter-spacing: .03em; color: var(--c, var(--cyan));
+  }
+  .mh { font-size: .72rem; color: var(--muted); text-align: right; }
+  .mname { font-weight: 500; font-size: 1rem; margin: 14px 0 2px; }
+  .st { font-size: .78rem; color: var(--c, var(--muted)); }
+  .bar { height: 5px; border-radius: 5px; background: var(--border-soft); margin: 16px 0; overflow: hidden; }
+  .fill { height: 100%; border-radius: 5px; background: var(--c, var(--cyan)); box-shadow: 0 0 12px var(--c, var(--cyan)); transition: width .3s; }
+  .mbot { display: flex; justify-content: space-between; align-items: center; }
+  .cnt { font-size: 1.8rem; font-weight: 600; line-height: 1; }
+  .cnt span { font-size: .9rem; font-weight: 300; color: var(--muted); }
+  .btns { display: flex; gap: 8px; }
+  .btns button {
+    width: 38px; height: 38px; border-radius: 50%; cursor: pointer; font: inherit; font-size: 1.15rem; font-weight: 400;
+    border: 1.5px solid var(--text); background: transparent; color: var(--text); transition: all .15s; line-height: 1;
+  }
+  .btns button:hover { border-color: var(--cyan); color: var(--cyan); }
+  .btns button.plus { background: var(--cyan); border-color: var(--cyan); color: #fff; }
+  .btns button.plus:hover { box-shadow: 0 0 18px rgba(34,184,230,.6); color: #fff; }
+  .btns button:active { transform: scale(.92); }
+
+  .mod.warn { --c: var(--warn); }
+  .mod.max, .mod.dead { --c: var(--bad); }
+  .mod.dead { border-color: var(--bad); background: rgba(255,90,106,.08); }
+  .mod.warn .st, .mod.max .st, .mod.dead .st { font-weight: 500; }
+
+  .pop { animation: pop .22s ease; }
+  @keyframes pop { 50% { transform: scale(1.12); } }
+
+  /* FOOTER */
+  footer { background: var(--cyan); color: #fff; margin-top: 90px; position: relative; z-index: 1; }
+  .fwrap { max-width: 1080px; margin: 0 auto; padding: 44px 24px 36px; display: grid; grid-template-columns: 1.3fr 1fr 1fr; gap: 30px; }
+  footer h4 { margin: 0 0 14px; font-size: .9rem; font-weight: 600; }
+  footer p, footer a, footer button { font-size: .82rem; color: rgba(255,255,255,.88); line-height: 1.8; }
+  footer ul { list-style: none; margin: 0; padding: 0; }
+  footer a { text-decoration: none; }
+  footer a:hover, footer button:hover { color: #fff; text-decoration: underline; }
+  footer button { background: none; border: none; padding: 0; font-family: inherit; cursor: pointer; display: block; }
+  .copy { border-top: 1px solid rgba(255,255,255,.3); text-align: center; font-size: .75rem; padding: 14px; color: rgba(255,255,255,.85); }
+
+  .toast {
+    position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 16px); opacity: 0;
+    background: var(--bg-deep); color: var(--text); border: 1.5px solid var(--cyan);
+    padding: 12px 22px; border-radius: 999px; font-size: .85rem; font-weight: 400;
+    transition: all .25s; pointer-events: none; z-index: 20; max-width: calc(100% - 32px); text-align: center;
+  }
+  .toast.show { transform: translate(-50%, 0); opacity: 1; }
+  .toast.alert { border-color: var(--bad); }
+
+  /* estado de la conexión con la base de datos */
+  .sync { display: inline-flex; align-items: center; gap: 8px; font-size: .75rem; color: var(--muted); }
+  .sync i { width: 8px; height: 8px; border-radius: 50%; background: var(--warn); box-shadow: 0 0 8px var(--warn); }
+  .sync.on i { background: #3ddc84; box-shadow: 0 0 8px #3ddc84; }
+  .sync.off i { background: var(--bad); box-shadow: 0 0 8px var(--bad); }
+
+  @media (max-width: 900px) {
+    .hero { grid-template-columns: 1fr; padding-top: 30px; }
+    .ranking { grid-template-columns: repeat(2, 1fr); }
+    .grid { grid-template-columns: repeat(2, 1fr); }
+    .fwrap { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 560px) {
+    .links a:not(.pill) { display: none; }
+    .ranking, .grid { grid-template-columns: 1fr; }
+    .stats { padding: 20px; }
+    .stats b { font-size: 1.6rem; }
+    .fwrap { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="glow g1"></div>
+<div class="glow g2"></div>
+<div class="glow g3"></div>
+
+<div class="wrap">
+  <nav>
+    <div class="logo"><i></i>2DAM</div>
+    <div class="links">
+      <span class="sync" id="sync"><i></i><span>Conectando…</span></span>
+      <a href="#inicio">Inicio</a>
+      <a href="#ranking">Ranking</a>
+      <a href="#modulos">Módulos</a>
+      <a class="pill" href="#modulos">Apuntar falta</a>
+    </div>
+  </nav>
+
+  <div class="hero" id="inicio">
+    <div>
+      <div class="over">Curso 2026 / 2027</div>
+      <h1>Control de <span class="serif">Faltas</span><br>2DAM</h1>
+      <p class="lead">Lleva la cuenta de las faltas de cada módulo y comprueba quién está más cerca de perder la evaluación continua.</p>
+      <div class="cta">
+        <a class="pill" href="#modulos">Apuntar falta</a>
+        <a class="pill ghost" href="#ranking">Ver ranking</a>
+      </div>
+    </div>
+    <div class="stats" id="stats"></div>
+  </div>
+
+  <div class="divider"></div>
+
+  <section id="ranking">
+    <div class="head">
+      <div class="over">Ranking</div>
+      <h2>Quién falta más</h2>
+      <p>Ordenado por total de faltas. Pulsa en una tarjeta para ver los módulos de esa persona.</p>
+    </div>
+    <div class="ranking" id="rankingList"></div>
+  </section>
+
+  <section id="modulos">
+    <div class="head">
+      <div class="over">Módulos</div>
+      <h2>Faltas por asignatura</h2>
+      <p>Naranja al acercarte al límite, rojo al alcanzarlo.</p>
+    </div>
+    <div class="players" id="players"></div>
+    <div class="grid" id="grid"></div>
+  </section>
+</div>
+
+<footer>
+  <div class="fwrap">
+    <div>
+      <h4>Faltas 2DAM</h4>
+      <p>Los datos se guardan en una base de datos compartida y se actualizan en tiempo real para todo el grupo.</p>
+    </div>
+    <div>
+      <h4>Menú</h4>
+      <ul>
+        <li><a href="#inicio">Inicio</a></li>
+        <li><a href="#ranking">Ranking</a></li>
+        <li><a href="#modulos">Módulos</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Datos</h4>
+      <button id="exportar">Exportar datos</button>
+      <button id="importar">Importar datos</button>
+      <button id="reset">Reiniciar persona seleccionada</button>
+      <input type="file" id="fileInput" accept=".json" hidden>
+    </div>
+  </div>
+  <div class="copy">Sebastian · Matías · Ian · Joaquín</div>
+</footer>
+<div class="toast" id="toast"></div>
+
+<script type="module">
+// ─────────────────────────────────────────────────────────────
+//  CONFIGURACIÓN DE FIREBASE
+//  Pega aquí los datos de tu proyecto (Consola de Firebase →
+//  Configuración del proyecto → Tus apps → SDK config).
+//  Mientras apiKey esté vacío la página funciona en "modo local"
+//  guardando los datos solo en este navegador.
+// ─────────────────────────────────────────────────────────────
+const firebaseConfig = {
+  apiKey: "",
+  authDomain: "",
+  databaseURL: "",   // p. ej. https://faltas-2dam-default-rtdb.europe-west1.firebasedatabase.app
+  projectId: "",
+  storageBucket: "",
+  messagingSenderId: "",
+  appId: ""
+};
+
+const FIREBASE_SDK = "https://www.gstatic.com/firebasejs/10.12.2";
+
+const MODULOS = [
+  { id: "SSG",   nombre: "SSG",            corto: "SSG", max: 16, horas: 96 },
+  { id: "PGV",   nombre: "PGV",            corto: "PGV", max: 16, horas: 96 },
+  { id: "FOL",   nombre: "FOL",            corto: "FOL", max: 16, horas: 96 },
+  { id: "PROY",  nombre: "Proyecto",       corto: "PRY", max: 13, horas: 64 },
+  { id: "SOST",  nombre: "Sostenibilidad", corto: "SOS", max: 6,  horas: 32 },
+  { id: "AD",    nombre: "Acceso a Datos", corto: "AD",  max: 29, horas: 147 },
+  { id: "DI",    nombre: "Interfaces",     corto: "DI",  max: 27, horas: 138 },
+  { id: "PGL",   nombre: "PGL",            corto: "PGL", max: 18, horas: 110 },
+  { id: "CIBER", nombre: "Ciberseguridad", corto: "CIB", max: 16, horas: 96 }
+];
+const PERSONAS = ["Sebastian", "Matías", "Ian", "Joaquín"];
+const KEY = "faltas2dam_v1";
+const RUTA = "faltas"; // nodo raíz en la base de datos: faltas/{persona}/{modulo}
+
+const ONLINE = Boolean(firebaseConfig.apiKey && firebaseConfig.databaseURL);
+// El SDK solo se descarga si hay configuración, así el modo local funciona sin internet
+let db, ref, onValue, runTransaction, update;
+if (ONLINE) {
+  const { initializeApp } = await import(`${FIREBASE_SDK}/firebase-app.js`);
+  const sdk = await import(`${FIREBASE_SDK}/firebase-database.js`);
+  ({ ref, onValue, runTransaction, update } = sdk);
+  db = sdk.getDatabase(initializeApp(firebaseConfig));
+}
+
+let datos = vacio();
+let actual = PERSONAS[0];
+let ultimo = null;
+
+function vacio() {
+  const d = {};
+  PERSONAS.forEach(p => { d[p] = {}; MODULOS.forEach(m => d[p][m.id] = 0); });
+  return d;
+}
+// Convierte lo que venga (BD, localStorage o archivo) al formato completo
+function normalizar(g) {
+  const base = vacio();
+  if (g) PERSONAS.forEach(p => MODULOS.forEach(m => {
+    const v = g[p] && g[p][m.id];
+    if (Number.isFinite(v) && v >= 0) base[p][m.id] = v;
+  }));
+  return base;
+}
+
+// ── Capa de datos ────────────────────────────────────────────
+// En modo online escribimos en Firebase y el listener onValue
+// se encarga de actualizar `datos` y repintar en todos los navegadores.
+// En modo local se guarda en localStorage como antes.
+
+function cargarLocal() {
+  try { return normalizar(JSON.parse(localStorage.getItem(KEY))); } catch (e) { return vacio(); }
+}
+function guardarLocal() { try { localStorage.setItem(KEY, JSON.stringify(datos)); } catch (e) {} }
+
+function escucharCambios() {
+  if (!ONLINE) {
+    datos = cargarLocal();
+    setSync("off", "Modo local");
+    render();
+    return;
+  }
+  onValue(ref(db, RUTA), snap => {
+    const nuevos = normalizar(snap.val());
+    // Animar los módulos de la persona visible que haya cambiado otra persona
+    if (!ultimo) ultimo = MODULOS.find(m => nuevos[actual][m.id] !== datos[actual][m.id])?.id ?? null;
+    datos = nuevos;
+    render();
+  }, err => {
+    console.error(err);
+    toast("No se pudo leer la base de datos", true);
+  });
+  onValue(ref(db, ".info/connected"), snap => {
+    snap.val() ? setSync("on", "En directo") : setSync("", "Reconectando…");
+  });
+}
+
+// Suma/resta con transacción: si dos personas pulsan a la vez no se pierde ningún clic
+async function cambiarValor(p, m, d) {
+  if (!ONLINE) {
+    const ahora = Math.max(0, datos[p][m.id] + d);
+    datos[p][m.id] = ahora; guardarLocal();
+    return ahora;
+  }
+  const res = await runTransaction(ref(db, `${RUTA}/${p}/${m.id}`), v => Math.max(0, (v || 0) + d));
+  return res.snapshot.val() || 0;
+}
+async function reiniciar(p) {
+  if (!ONLINE) { MODULOS.forEach(m => datos[p][m.id] = 0); guardarLocal(); render(); return; }
+  const cambios = {};
+  MODULOS.forEach(m => cambios[`${p}/${m.id}`] = 0);
+  await update(ref(db, RUTA), cambios);
+}
+async function reemplazarTodo(nuevo) {
+  if (!ONLINE) { datos = nuevo; guardarLocal(); render(); return; }
+  const cambios = {};
+  PERSONAS.forEach(p => MODULOS.forEach(m => cambios[`${p}/${m.id}`] = nuevo[p][m.id]));
+  await update(ref(db, RUTA), cambios);
+}
+
+function setSync(cls, txt) {
+  const s = document.getElementById("sync");
+  s.className = "sync " + cls;
+  s.querySelector("span").textContent = txt;
+}
+
+// ── Interfaz ─────────────────────────────────────────────────
+
+function estado(f, max) {
+  if (f > max)  return { cls: "dead", txt: "Evaluación continua perdida" };
+  if (f === max) return { cls: "max",  txt: "Límite alcanzado" };
+  if (f / max >= .75) return { cls: "warn", txt: `Cuidado, quedan ${max - f}` };
+  return { cls: "", txt: `Quedan ${max - f} faltas` };
+}
+
+let toastT;
+function toast(msg, alert) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.className = "toast show" + (alert ? " alert" : "");
+  clearTimeout(toastT);
+  toastT = setTimeout(() => t.classList.remove("show"), 2000);
+}
+
+function stats(p) {
+  let total = 0, peor = null, peorPct = -1, perdidos = 0, peligro = 0;
+  MODULOS.forEach(m => {
+    const f = datos[p][m.id];
+    total += f;
+    if (f > m.max) perdidos++;
+    if (f / m.max >= .75) peligro++;
+    if (f > 0 && f / m.max > peorPct) { peorPct = f / m.max; peor = m; }
+  });
+  return { p, total, peor, peorPct, perdidos, peligro };
+}
+
+function renderStats() {
+  const s = stats(actual);
+  const grupo = PERSONAS.reduce((a, p) => a + stats(p).total, 0);
+  const margen = s.peor ? `${s.peor.nombre} (${Math.round(s.peorPct * 100)}%)` : "ninguno";
+  document.getElementById("stats").innerHTML = `
+    <div><b>${s.total}</b><span>Tus faltas</span></div>
+    <div><b>${s.peligro}</b><span>Módulos en riesgo</span></div>
+    <div><b>${grupo}</b><span>Faltas del grupo</span></div>
+    <div class="full">Viendo a <strong>${actual}</strong> · módulo más comprometido: <strong>${margen}</strong></div>`;
+}
+
+function renderRanking() {
+  const lista = PERSONAS.map(stats).sort((a, b) => b.total - a.total || b.peorPct - a.peorPct);
+  const cont = document.getElementById("rankingList");
+  cont.innerHTML = "";
+  lista.forEach((r, i) => {
+    const lider = i === 0 && r.total > 0;
+    let det = "Sin faltas por ahora";
+    if (r.peor) det = `Peor: ${r.peor.nombre} · ${datos[r.p][r.peor.id]}/${r.peor.max}`;
+    if (r.perdidos) det += `<br><span class="lost">${r.perdidos} módulo${r.perdidos > 1 ? "s" : ""} perdido${r.perdidos > 1 ? "s" : ""}</span>`;
+    const el = document.createElement("div");
+    el.className = "rk" + (lider ? " first" : "") + (r.p === actual ? " sel" : "");
+    el.innerHTML = `
+      ${lider ? '<span class="badge">Más faltas</span>' : ""}
+      <div class="pos">#${i + 1}</div>
+      <div class="avatar">${r.p[0]}</div>
+      <div class="who">${r.p}</div>
+      <div class="tot">${r.total}<small>faltas</small></div>
+      <div class="det">${det}</div>`;
+    el.onclick = () => {
+      actual = r.p; render();
+      document.getElementById("modulos").scrollIntoView();
+    };
+    cont.appendChild(el);
+  });
+}
+
+function renderPlayers() {
+  const cont = document.getElementById("players");
+  cont.innerHTML = "";
+  PERSONAS.forEach(p => {
+    const b = document.createElement("button");
+    b.className = "pill" + (p === actual ? "" : " ghost");
+    b.textContent = p;
+    b.onclick = () => { actual = p; render(); };
+    cont.appendChild(b);
+  });
+}
+
+function renderGrid() {
+  const cont = document.getElementById("grid");
+  cont.innerHTML = "";
+  MODULOS.forEach(m => {
+    const f = datos[actual][m.id];
+    const e = estado(f, m.max);
+    const pct = Math.min(100, (f / m.max) * 100);
+    const el = document.createElement("div");
+    el.className = "mod " + e.cls;
+    el.innerHTML = `
+      <div class="mtop">
+        <div class="icon">${m.corto}</div>
+        <div class="mh">${m.horas} h<br>límite ${m.max}</div>
+      </div>
+      <div class="mname">${m.nombre}</div>
+      <div class="st">${e.txt}</div>
+      <div class="bar"><div class="fill" style="width:${pct}%"></div></div>
+      <div class="mbot">
+        <div class="cnt">${f}<span> / ${m.max}</span></div>
+        <div class="btns">
+          <button aria-label="Quitar falta">−</button>
+          <button class="plus" aria-label="Añadir falta">+</button>
+        </div>
+      </div>`;
+    const [menos, mas] = el.querySelectorAll(".btns button");
+    menos.onclick = () => cambiar(m, -1);
+    mas.onclick = () => cambiar(m, 1);
+    if (ultimo === m.id) el.querySelector(".cnt").classList.add("pop");
+    cont.appendChild(el);
+  });
+  ultimo = null;
+}
+
+async function cambiar(m, d) {
+  const p = actual;
+  if (d < 0 && datos[p][m.id] === 0) return;
+  ultimo = m.id;
+  let ahora;
+  try {
+    ahora = await cambiarValor(p, m, d);
+  } catch (e) {
+    console.error(e);
+    return toast("No se pudo guardar el cambio", true);
+  }
+  if (d > 0) {
+    if (ahora === m.max) toast(`${p}: límite alcanzado en ${m.nombre}`, true);
+    else if (ahora > m.max) toast(`${p} ha perdido la evaluación continua en ${m.nombre}`, true);
+    else if (ahora === Math.ceil(m.max * .75)) toast(`${p}: ${m.nombre} se acerca al límite`);
+  }
+  if (!ONLINE) render();
+}
+
+function render() { renderStats(); renderRanking(); renderPlayers(); renderGrid(); }
+
+document.getElementById("reset").onclick = async () => {
+  const p = actual;
+  if (!confirm(`¿Poner a 0 las faltas de ${p}?`)) return;
+  try { await reiniciar(p); toast(`${p} reiniciado`); }
+  catch (e) { console.error(e); toast("No se pudo reiniciar", true); }
+};
+document.getElementById("exportar").onclick = () => {
+  const blob = new Blob([JSON.stringify(datos, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = "faltas-2dam.json"; a.click();
+  URL.revokeObjectURL(a.href);
+};
+document.getElementById("importar").onclick = () => document.getElementById("fileInput").click();
+document.getElementById("fileInput").onchange = ev => {
+  const file = ev.target.files[0];
+  if (!file) return;
+  const r = new FileReader();
+  r.onload = async () => {
+    let nuevo;
+    try { nuevo = normalizar(JSON.parse(r.result)); }
+    catch (e) { return toast("Archivo no válido", true); }
+    if (ONLINE && !confirm("Esto sobrescribirá las faltas de todo el grupo. ¿Continuar?")) return;
+    try { await reemplazarTodo(nuevo); toast("Datos importados"); }
+    catch (e) { console.error(e); toast("No se pudieron importar", true); }
+  };
+  r.readAsText(file);
+  ev.target.value = "";
+};
+
+render();
+escucharCambios();
+</script>
+</body>
+</html>

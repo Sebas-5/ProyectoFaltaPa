@@ -176,6 +176,12 @@
   .toast.show { transform: translate(-50%, 0); opacity: 1; }
   .toast.alert { border-color: var(--bad); }
 
+  /* estado de la conexión con la base de datos */
+  .sync { display: inline-flex; align-items: center; gap: 8px; font-size: .75rem; color: var(--muted); }
+  .sync i { width: 8px; height: 8px; border-radius: 50%; background: var(--warn); box-shadow: 0 0 8px var(--warn); }
+  .sync.on i { background: #3ddc84; box-shadow: 0 0 8px #3ddc84; }
+  .sync.off i { background: var(--bad); box-shadow: 0 0 8px var(--bad); }
+
   @media (max-width: 900px) {
     .hero { grid-template-columns: 1fr; padding-top: 30px; }
     .ranking { grid-template-columns: repeat(2, 1fr); }
@@ -200,6 +206,7 @@
   <nav>
     <div class="logo"><i></i>2DAM</div>
     <div class="links">
+      <span class="sync" id="sync"><i></i><span>Conectando…</span></span>
       <a href="#inicio">Inicio</a>
       <a href="#ranking">Ranking</a>
       <a href="#modulos">Módulos</a>
@@ -246,7 +253,7 @@
   <div class="fwrap">
     <div>
       <h4>Faltas 2DAM</h4>
-      <p>Los datos se guardan en este navegador. Exporta el archivo para pasarlos a otro dispositivo.</p>
+      <p>Los datos se guardan en una base de datos compartida y se actualizan en tiempo real para todo el grupo.</p>
     </div>
     <div>
       <h4>Menú</h4>
@@ -268,7 +275,26 @@
 </footer>
 <div class="toast" id="toast"></div>
 
-<script>
+<script type="module">
+// ─────────────────────────────────────────────────────────────
+//  CONFIGURACIÓN DE FIREBASE
+//  Pega aquí los datos de tu proyecto (Consola de Firebase →
+//  Configuración del proyecto → Tus apps → SDK config).
+//  Mientras apiKey esté vacío la página funciona en "modo local"
+//  guardando los datos solo en este navegador.
+// ─────────────────────────────────────────────────────────────
+const firebaseConfig = {
+  apiKey: "AIzaSyCNElTEb8nRKmdtihGHzG8JTO0H95adtIg",
+  authDomain: "faltas-2dam.firebaseapp.com",
+  databaseURL: "https://faltas-2dam-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "faltas-2dam",
+  storageBucket: "faltas-2dam.firebasestorage.app",
+  messagingSenderId: "861140427939",
+  appId: "1:861140427939:web:8c1d4f1eac986618c98b16"
+};
+
+const FIREBASE_SDK = "https://www.gstatic.com/firebasejs/10.12.2";
+
 const MODULOS = [
   { id: "SSG",   nombre: "SSG",            corto: "SSG", max: 16, horas: 96 },
   { id: "PGV",   nombre: "PGV",            corto: "PGV", max: 16, horas: 96 },
@@ -282,8 +308,19 @@ const MODULOS = [
 ];
 const PERSONAS = ["Sebastian", "Matías", "Ian", "Joaquín"];
 const KEY = "faltas2dam_v1";
+const RUTA = "faltas"; // nodo raíz en la base de datos: faltas/{persona}/{modulo}
 
-let datos = cargar();
+const ONLINE = Boolean(firebaseConfig.apiKey && firebaseConfig.databaseURL);
+// El SDK solo se descarga si hay configuración, así el modo local funciona sin internet
+let db, ref, onValue, runTransaction, update;
+if (ONLINE) {
+  const { initializeApp } = await import(`${FIREBASE_SDK}/firebase-app.js`);
+  const sdk = await import(`${FIREBASE_SDK}/firebase-database.js`);
+  ({ ref, onValue, runTransaction, update } = sdk);
+  db = sdk.getDatabase(initializeApp(firebaseConfig));
+}
+
+let datos = vacio();
 let actual = PERSONAS[0];
 let ultimo = null;
 
@@ -292,18 +329,78 @@ function vacio() {
   PERSONAS.forEach(p => { d[p] = {}; MODULOS.forEach(m => d[p][m.id] = 0); });
   return d;
 }
-function cargar() {
+// Convierte lo que venga (BD, localStorage o archivo) al formato completo
+function normalizar(g) {
   const base = vacio();
-  try {
-    const g = JSON.parse(localStorage.getItem(KEY));
-    if (g) PERSONAS.forEach(p => MODULOS.forEach(m => {
-      const v = g[p] && g[p][m.id];
-      if (Number.isFinite(v)) base[p][m.id] = v;
-    }));
-  } catch (e) {}
+  if (g) PERSONAS.forEach(p => MODULOS.forEach(m => {
+    const v = g[p] && g[p][m.id];
+    if (Number.isFinite(v) && v >= 0) base[p][m.id] = v;
+  }));
   return base;
 }
-function guardar() { try { localStorage.setItem(KEY, JSON.stringify(datos)); } catch (e) {} }
+
+// ── Capa de datos ────────────────────────────────────────────
+// En modo online escribimos en Firebase y el listener onValue
+// se encarga de actualizar `datos` y repintar en todos los navegadores.
+// En modo local se guarda en localStorage como antes.
+
+function cargarLocal() {
+  try { return normalizar(JSON.parse(localStorage.getItem(KEY))); } catch (e) { return vacio(); }
+}
+function guardarLocal() { try { localStorage.setItem(KEY, JSON.stringify(datos)); } catch (e) {} }
+
+function escucharCambios() {
+  if (!ONLINE) {
+    datos = cargarLocal();
+    setSync("off", "Modo local");
+    render();
+    return;
+  }
+  onValue(ref(db, RUTA), snap => {
+    const nuevos = normalizar(snap.val());
+    // Animar los módulos de la persona visible que haya cambiado otra persona
+    if (!ultimo) ultimo = MODULOS.find(m => nuevos[actual][m.id] !== datos[actual][m.id])?.id ?? null;
+    datos = nuevos;
+    render();
+  }, err => {
+    console.error(err);
+    toast("No se pudo leer la base de datos", true);
+  });
+  onValue(ref(db, ".info/connected"), snap => {
+    snap.val() ? setSync("on", "En directo") : setSync("", "Reconectando…");
+  });
+}
+
+// Suma/resta con transacción: si dos personas pulsan a la vez no se pierde ningún clic
+async function cambiarValor(p, m, d) {
+  if (!ONLINE) {
+    const ahora = Math.max(0, datos[p][m.id] + d);
+    datos[p][m.id] = ahora; guardarLocal();
+    return ahora;
+  }
+  const res = await runTransaction(ref(db, `${RUTA}/${p}/${m.id}`), v => Math.max(0, (v || 0) + d));
+  return res.snapshot.val() || 0;
+}
+async function reiniciar(p) {
+  if (!ONLINE) { MODULOS.forEach(m => datos[p][m.id] = 0); guardarLocal(); render(); return; }
+  const cambios = {};
+  MODULOS.forEach(m => cambios[`${p}/${m.id}`] = 0);
+  await update(ref(db, RUTA), cambios);
+}
+async function reemplazarTodo(nuevo) {
+  if (!ONLINE) { datos = nuevo; guardarLocal(); render(); return; }
+  const cambios = {};
+  PERSONAS.forEach(p => MODULOS.forEach(m => cambios[`${p}/${m.id}`] = nuevo[p][m.id]));
+  await update(ref(db, RUTA), cambios);
+}
+
+function setSync(cls, txt) {
+  const s = document.getElementById("sync");
+  s.className = "sync " + cls;
+  s.querySelector("span").textContent = txt;
+}
+
+// ── Interfaz ─────────────────────────────────────────────────
 
 function estado(f, max) {
   if (f > max)  return { cls: "dead", txt: "Evaluación continua perdida" };
@@ -415,28 +512,32 @@ function renderGrid() {
   ultimo = null;
 }
 
-function cambiar(m, d) {
-  const antes = datos[actual][m.id];
-  const ahora = Math.max(0, antes + d);
-  if (ahora === antes) return;
-  datos[actual][m.id] = ahora;
-  guardar();
+async function cambiar(m, d) {
+  const p = actual;
+  if (d < 0 && datos[p][m.id] === 0) return;
   ultimo = m.id;
-  if (d > 0) {
-    if (ahora === m.max) toast(`${actual}: límite alcanzado en ${m.nombre}`, true);
-    else if (ahora > m.max) toast(`${actual} ha perdido la evaluación continua en ${m.nombre}`, true);
-    else if (ahora === Math.ceil(m.max * .75)) toast(`${actual}: ${m.nombre} se acerca al límite`);
+  let ahora;
+  try {
+    ahora = await cambiarValor(p, m, d);
+  } catch (e) {
+    console.error(e);
+    return toast("No se pudo guardar el cambio", true);
   }
-  render();
+  if (d > 0) {
+    if (ahora === m.max) toast(`${p}: límite alcanzado en ${m.nombre}`, true);
+    else if (ahora > m.max) toast(`${p} ha perdido la evaluación continua en ${m.nombre}`, true);
+    else if (ahora === Math.ceil(m.max * .75)) toast(`${p}: ${m.nombre} se acerca al límite`);
+  }
+  if (!ONLINE) render();
 }
 
 function render() { renderStats(); renderRanking(); renderPlayers(); renderGrid(); }
 
-document.getElementById("reset").onclick = () => {
-  if (confirm(`¿Poner a 0 las faltas de ${actual}?`)) {
-    MODULOS.forEach(m => datos[actual][m.id] = 0);
-    guardar(); render(); toast(`${actual} reiniciado`);
-  }
+document.getElementById("reset").onclick = async () => {
+  const p = actual;
+  if (!confirm(`¿Poner a 0 las faltas de ${p}?`)) return;
+  try { await reiniciar(p); toast(`${p} reiniciado`); }
+  catch (e) { console.error(e); toast("No se pudo reiniciar", true); }
 };
 document.getElementById("exportar").onclick = () => {
   const blob = new Blob([JSON.stringify(datos, null, 2)], { type: "application/json" });
@@ -449,21 +550,20 @@ document.getElementById("fileInput").onchange = ev => {
   const file = ev.target.files[0];
   if (!file) return;
   const r = new FileReader();
-  r.onload = () => {
-    try {
-      const obj = JSON.parse(r.result), nuevo = vacio();
-      PERSONAS.forEach(p => MODULOS.forEach(m => {
-        const v = obj[p] && obj[p][m.id];
-        if (Number.isFinite(v)) nuevo[p][m.id] = v;
-      }));
-      datos = nuevo; guardar(); render(); toast("Datos importados");
-    } catch (e) { toast("Archivo no válido", true); }
+  r.onload = async () => {
+    let nuevo;
+    try { nuevo = normalizar(JSON.parse(r.result)); }
+    catch (e) { return toast("Archivo no válido", true); }
+    if (ONLINE && !confirm("Esto sobrescribirá las faltas de todo el grupo. ¿Continuar?")) return;
+    try { await reemplazarTodo(nuevo); toast("Datos importados"); }
+    catch (e) { console.error(e); toast("No se pudieron importar", true); }
   };
   r.readAsText(file);
   ev.target.value = "";
 };
 
 render();
+escucharCambios();
 </script>
 </body>
 </html>

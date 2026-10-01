@@ -79,6 +79,48 @@
           },
           "$otro": {
             ".validate": false
+          },
+          "ts": {
+            ".validate": "newData.isNumber() && newData.val() <= now"
+          }
+        }
+      }
+    },
+    "muro": {
+      ".read": "auth != null && root.child('usuarios').child(auth.uid).exists()",
+      "$persona": {
+        ".write": "auth != null && root.child('duenos').child($persona).child('uid').val() === auth.uid && !newData.exists() && !newData.parent().parent().child('registro').child($persona).exists()",
+        "$id": {
+          ".write": "auth != null && root.child('duenos').child($persona).child('uid').val() === auth.uid && !newData.exists() && !newData.parent().parent().parent().child('registro').child($persona).child($id).exists()",
+          "reacciones": {
+            "$emoji": {
+              ".validate": "$emoji === 'risa' || $emoji === 'muerto' || $emoji === 'ojos' || $emoji === 'saludo' || $emoji === 'enfado'",
+              "$quien": {
+                ".write": "auth != null && root.child('duenos').child($quien).child('uid').val() === auth.uid",
+                ".validate": "newData.val() === true && root.child('registro').child($persona).child($id).exists()"
+              }
+            }
+          },
+          "comentarios": {
+            "$cid": {
+              ".write": "auth != null && ((!data.exists() && newData.exists()) || (data.exists() && !newData.exists() && (root.child('duenos').child(data.child('autor').val()).child('uid').val() === auth.uid || root.child('duenos').child('Sebastian').child('uid').val() === auth.uid)))",
+              ".validate": "newData.hasChildren(['autor', 'texto', 'ts']) && root.child('registro').child($persona).child($id).exists()",
+              "autor": {
+                ".validate": "newData.isString() && root.child('duenos').child(newData.val()).child('uid').val() === auth.uid"
+              },
+              "texto": {
+                ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 200"
+              },
+              "ts": {
+                ".validate": "newData.val() === now"
+              },
+              "$otro": {
+                ".validate": false
+              }
+            }
+          },
+          "$otro": {
+            ".validate": false
           }
         }
       }

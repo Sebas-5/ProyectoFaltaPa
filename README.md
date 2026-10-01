@@ -28,6 +28,13 @@ al momento sin recargar.
   filtrar por persona y por periodo (este mes, último trimestre, todo el curso) y se
   actualizan en tiempo real.
 
+- **Muro**: cada falta apuntada aparece en el muro del grupo ("Joaquín ha faltado a
+  Desarrollo de interfaces · hace 5 min"). Se puede reaccionar con 😂 💀 👀 🫡 😤 (una vez
+  por emoji y persona; al pulsar el contador se ve quién) y comentar (máximo 200
+  caracteres). Cada uno borra sus comentarios y el administrador (Sebastian) puede
+  borrar cualquiera. El menú muestra cuántas entradas nuevas hay sin leer. Se cargan
+  las 20 últimas entradas y 20 más al llegar al final de la lista.
+
 ### Calendario y horario del curso
 
 La proyección usa dos objetos de `index.html`:
@@ -42,7 +49,9 @@ Si cambia alguna fecha o el horario, basta con editarlos ahí.
 
 ```text
 faltas/{persona}/{modulo}    número de faltas
-registro/{persona}/{id}      { modulo, fecha }  una entrada por falta, con su fecha
+registro/{persona}/{id}      { modulo, fecha, ts }  una entrada por falta (ts: hora exacta)
+muro/{persona}/{id}          reacciones/{emoji}/{persona}: true
+                             comentarios/{id}: { autor, texto, ts }
 retrasos/{persona}/{modulo}  número de retrasos
 perfiles/{persona}           { nombre, foto }
 usuarios/{uid}               { persona }        cuenta → persona (solo la lee su dueño)

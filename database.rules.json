@@ -63,6 +63,25 @@
           ".validate": false
         }
       }
+    },
+    "registro": {
+      ".read": "auth != null && root.child('usuarios').child(auth.uid).exists()",
+      "$persona": {
+        ".write": "auth != null && root.child('duenos').child($persona).child('uid').val() === auth.uid",
+        ".validate": "$persona === 'Sebastian' || $persona === 'Matías' || $persona === 'Ian' || $persona === 'Joaquín'",
+        "$id": {
+          ".validate": "newData.hasChildren(['modulo', 'fecha'])",
+          "modulo": {
+            ".validate": "newData.isString() && (newData.val() === 'SSG' || newData.val() === 'PGV' || newData.val() === 'FOL' || newData.val() === 'PROY' || newData.val() === 'SOST' || newData.val() === 'AD' || newData.val() === 'DI' || newData.val() === 'PGL' || newData.val() === 'CIBER')"
+          },
+          "fecha": {
+            ".validate": "newData.isString() && newData.val().matches(/^20[0-9][0-9]-[01][0-9]-[0-3][0-9]$/)"
+          },
+          "$otro": {
+            ".validate": false
+          }
+        }
+      }
     }
   }
 }

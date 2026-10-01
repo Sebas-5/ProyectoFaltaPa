@@ -21,6 +21,12 @@ al momento sin recargar.
   pasado (según el horario) se calcula tu ritmo y se estima cuándo te quedarías sin
   margen en cada módulo (por ejemplo, "a este ritmo te quedas sin margen en Desarrollo de
   interfaces a mediados de enero") o con cuántas faltas acabarías el curso.
+- **Estadísticas** (con [Chart.js](https://www.chartjs.org/) desde cdnjs): resumen
+  (faltas, límite consumido de media, módulo más comprometido y racha de días sin
+  faltar), faltas por mes de cada miembro, faltas por módulo frente al límite, faltas
+  por día de la semana, comparativa del grupo y un mapa de calor día a día. Se pueden
+  filtrar por persona y por periodo (este mes, último trimestre, todo el curso) y se
+  actualizan en tiempo real.
 
 ### Calendario y horario del curso
 
@@ -36,6 +42,7 @@ Si cambia alguna fecha o el horario, basta con editarlos ahí.
 
 ```text
 faltas/{persona}/{modulo}    número de faltas
+registro/{persona}/{id}      { modulo, fecha }  una entrada por falta, con su fecha
 retrasos/{persona}/{modulo}  número de retrasos
 perfiles/{persona}           { nombre, foto }
 usuarios/{uid}               { persona }        cuenta → persona (solo la lee su dueño)
@@ -43,6 +50,10 @@ duenos/{persona}             { uid, codigo }    persona → cuenta (nadie la pue
 ```
 
 `{persona}` es el id interno: `Sebastian`, `Matías`, `Ian` o `Joaquín`.
+
+El contador de `faltas` y su entrada en `registro` se escriben siempre juntos en una
+sola operación. Las faltas apuntadas antes de que existiera el registro se migran
+solas con la fecha del día en que cada uno vuelve a entrar en la web.
 
 ## Configurar Firebase
 

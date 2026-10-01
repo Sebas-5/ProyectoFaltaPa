@@ -17,10 +17,13 @@ al momento sin recargar.
   perfil** y un **nombre visible**. La foto se recorta a 320×320 y se guarda en la
   propia base de datos.
 - Los retrasos se cuentan aparte de las faltas (no suman para el límite).
-- **Proyección**: con las faltas que llevas y las clases de cada módulo que ya han
-  pasado (según el horario) se calcula tu ritmo y se estima cuándo te quedarías sin
-  margen en cada módulo (por ejemplo, "a este ritmo te quedas sin margen en Desarrollo de
-  interfaces a mediados de enero") o con cuántas faltas acabarías el curso.
+- **Fecha de cada falta**: al pulsar `+` se elige el día de la falta (con atajos a las
+  últimas clases de ese módulo). Solo se aceptan días con clase de ese módulo según el
+  horario, desde el inicio del curso hasta hoy.
+- **Proyección**: con el ritmo que llevas desde que empezaron las clases hasta hoy (por
+  ejemplo, 2 faltas en 2 semanas = 1 por semana) se estima cuándo te quedarías sin
+  margen en cada módulo ("a este ritmo te quedas sin margen en Desarrollo de interfaces
+  a mediados de enero") o con cuántas faltas acabarías el curso.
 - **Estadísticas**: tus faltas totales, el módulo más comprometido (con el % del límite
   usado) y los días seguidos sin faltar; una gráfica de barras con las faltas de cada
   mes del curso y la lista "Lo que te queda" con el margen de cada módulo (naranja si
@@ -35,11 +38,13 @@ al momento sin recargar.
 
 ### Calendario y horario del curso
 
-La proyección usa dos objetos de `index.html`:
+`index.html` tiene dos objetos con el curso:
 
-- `CALENDARIO`: primer y último día de clase, festivos y vacaciones.
+- `CALENDARIO`: primer y último día de clase, festivos y vacaciones (los usa la
+  proyección para contar los días de clase pasados y los que quedan).
 - `HORARIO`: cuántas sesiones tiene cada módulo el lunes, martes, miércoles, jueves
-  y viernes.
+  y viernes (sirve para comprobar que el día elegido para una falta tuvo clase de ese
+  módulo).
 
 Si cambia alguna fecha o el horario, basta con editarlos ahí.
 

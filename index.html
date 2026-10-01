@@ -441,6 +441,11 @@
     color: var(--text); font: inherit; font-size: .9rem; outline: none; transition: border-color .15s;
   }
   .card input:focus { border-color: var(--cyan); }
+  .card input[type=date] { width: 100%; background: var(--bg-deep); border: 1.5px solid var(--border); border-radius: 10px; padding: 10px 14px; color: var(--text); font: inherit; font-size: .9rem; outline: none; color-scheme: dark; }
+  .rapidas { display: flex; flex-wrap: wrap; gap: 8px; }
+  .rapidas button { border: 1.5px solid var(--border); background: transparent; color: var(--text); border-radius: 999px; padding: 6px 12px; font: inherit; font-size: .78rem; cursor: pointer; }
+  .rapidas button:hover { border-color: var(--cyan); }
+  .rapidas button.on { background: var(--cyan); border-color: var(--cyan); color: #fff; }
   .card input.code { text-transform: uppercase; letter-spacing: .12em; font-weight: 500; }
   .card .pill { width: 100%; margin-top: 4px; }
   .card .pill:disabled { opacity: .6; cursor: wait; }
@@ -699,6 +704,21 @@
   </div>
 </div>
 
+<!-- Ventana para elegir el día de la falta al pulsar + -->
+<div class="modal" id="fechaModal" hidden>
+  <div class="card">
+    <button class="cerrar" type="button" id="fechaCerrar" aria-label="Cerrar">×</button>
+    <h2>¿Qué día faltaste?</h2>
+    <p class="sub" id="fechaSub"></p>
+    <form id="fFecha" novalidate>
+      <div class="rapidas" id="fechaRapidas"></div>
+      <label>Fecha de la falta<input type="date" name="fecha" required></label>
+      <p class="msg" id="fechaMsg"></p>
+      <button class="pill" type="submit">Apuntar falta</button>
+    </form>
+  </div>
+</div>
+
 <!-- Ventana de personalización del perfil -->
 <div class="modal" id="perfil" hidden>
   <div class="card">
@@ -859,26 +879,29 @@ function cuando(fechaISO) {
   return `a ${d <= 10 ? "principios" : d <= 20 ? "mediados" : "finales"} de ${mes}`;
 }
 
-// Proyecta las faltas de un módulo suponiendo que se sigue faltando al mismo ritmo
-// (faltas por sesión de clase ya dada, según el horario) hasta el último día de clase.
-function proyeccion(f, max, id, hoy = hoyISO()) {
-  const sesiones = LECTIVOS.map(d => HORARIO[id][d.dia]);
-  const hechos = LECTIVOS.filter(d => d.fecha <= hoy).length;   // días lectivos ya pasados
-  if (hechos >= LECTIVOS.length) return { tipo: "fin" };
+// Proyecta las faltas de un módulo con el ritmo que se lleva desde que empezaron las
+// clases hasta hoy: si en 10 días de clase (2 semanas) has faltado 2 veces, se supone que
+// seguirás faltando 2 veces cada 2 semanas durante los días de clase que quedan.
+function proyeccion(f, max, hoy = hoyISO()) {
+  const total = LECTIVOS.length;
+  const hechos = LECTIVOS.filter(d => d.fecha <= hoy).length;   // días de clase ya pasados
+  if (hechos >= total) return { tipo: "fin" };
   if (f > max) return { tipo: "perdida" };
   if (f === max) return { tipo: "limite" };
   if (f === 0) return { tipo: "cero", final: 0 };
-  const total = sesiones.reduce((a, b) => a + b, 0);
-  const pasadas = sesiones.slice(0, hechos).reduce((a, b) => a + b, 0);
-  if (hechos < 5 || pasadas === 0) return { tipo: "pocos" };
-  const final = f * total / pasadas;
-  if (final < max) return { tipo: final >= max * .75 ? "justo" : "ok", final: Math.round(final) };
-  // Primer día en el que, a este ritmo, se llegaría al límite (se compara en enteros: acum·f ≥ max·pasadas)
-  let acum = 0;
-  for (let i = 0; i < LECTIVOS.length; i++) {
-    acum += sesiones[i];
-    if (acum * f >= max * pasadas) return { tipo: "agota", fecha: LECTIVOS[i].fecha, final: Math.round(final) };
-  }
+  if (hechos < 5) return { tipo: "pocos" };
+  const semanal = f / hechos * 5;                 // faltas por semana de clase (5 días)
+  const final = f * total / hechos;
+  if (final < max) return { tipo: final >= max * .75 ? "justo" : "ok", final: Math.round(final), semanal };
+  // Día de clase en el que, a este ritmo, se llegaría al límite (en enteros: dia·f ≥ max·hechos)
+  const dia = Math.min(total, Math.ceil(max * hechos / f));
+  return { tipo: "agota", fecha: LECTIVOS[dia - 1].fecha, final: Math.round(final), semanal };
+}
+
+// "1 por semana", "1,5 por semana", "1 cada 3 semanas"
+function ritmoTxt(semanal) {
+  const n = x => x.toLocaleString("es-ES", { maximumFractionDigits: 1 });
+  return semanal >= 1 ? `${n(semanal)} por semana` : `1 cada ${n(1 / semanal)} semanas`;
 }
 
 let datos = { faltas: vacio(), retrasos: vacio() };
@@ -1051,6 +1074,7 @@ function salirDeDatos() {
 function mostrarAcceso(vista, msg = "") {
   $("perfil").hidden = true;
   $("verPerfil").hidden = true;
+  $("fechaModal").hidden = true;
   $("auth").hidden = false;
   $("tabs").hidden = vista === "vincular";
   $("fLogin").hidden = vista !== "login";
@@ -1198,7 +1222,7 @@ function reducirFoto(file, lado = 320) {
 $("userBtn").onclick = abrirPerfil;
 $("perfilCerrar").onclick = cerrarPerfil;
 $("perfil").onclick = ev => { if (ev.target === $("perfil")) cerrarPerfil(); };
-document.addEventListener("keydown", ev => { if (ev.key === "Escape") { cerrarPerfil(); cerrarVer(); } });
+document.addEventListener("keydown", ev => { if (ev.key === "Escape") { cerrarPerfil(); cerrarVer(); cerrarFecha(); } });
 $("fPerfil").elements.nombre.oninput = pintarPerfil;
 $("fotoCambiar").onclick = () => $("fotoInput").click();
 $("fotoQuitar").onclick = () => { fotoNueva = null; pintarPerfil(); };
@@ -1386,7 +1410,7 @@ function renderPlayers() {
 }
 
 function lineaProy(f, m) {
-  const max = m.max, pr = proyeccion(f, max, m.id);
+  const max = m.max, pr = proyeccion(f, max);
   if (pr.tipo === "agota") return `<div class="proy mal">📈 Sin margen ${cuando(pr.fecha)}</div>`;
   if (pr.tipo === "justo") return `<div class="proy justo">📈 Acabaría con ~${pr.final} de ${max}</div>`;
   if (pr.tipo === "ok") return `<div class="proy">📈 Acabaría con ~${pr.final} de ${max}</div>`;
@@ -1397,18 +1421,19 @@ function lineaProy(f, m) {
 
 function renderProyeccion() {
   const tu = actual === yo, quien = esc(nombre(actual));
-  const filas = MODULOS.map(m => ({ m, f: datos.faltas[actual][m.id], pr: proyeccion(datos.faltas[actual][m.id], m.max, m.id) }));
+  const filas = MODULOS.map(m => ({ m, f: datos.faltas[actual][m.id], pr: proyeccion(datos.faltas[actual][m.id], m.max) }));
   const orden = { perdida: 0, limite: 1, agota: 2, justo: 3, ok: 4, cero: 5, pocos: 6, fin: 7 };
   filas.sort((a, b) => orden[a.pr.tipo] - orden[b.pr.tipo]
     || (a.pr.fecha || "").localeCompare(b.pr.fecha || "")
     || (b.pr.final ?? b.f) / b.m.max - (a.pr.final ?? a.f) / a.m.max);
 
   const fin = LECTIVOS[LECTIVOS.length - 1].fecha, hoy = hoyISO();
-  const quedan = LECTIVOS.filter(d => d.fecha > hoy).length;
-  const finTxt = new Date(fin + "T00:00:00Z").toLocaleDateString("es-ES", { day: "numeric", month: "long", timeZone: "UTC" });
+  const quedan = LECTIVOS.filter(d => d.fecha > hoy).length, hechos = LECTIVOS.length - quedan;
+  const dm = iso => new Date(iso + "T00:00:00Z").toLocaleDateString("es-ES", { day: "numeric", month: "long", timeZone: "UTC" });
+  const semanas = (hechos / 5).toLocaleString("es-ES", { maximumFractionDigits: 1 });
   $("proySub").textContent = quedan
-    ? `Calculado con ${tu ? "tus faltas" : "las faltas de " + nombre(actual)} hasta hoy, el horario de cada módulo y los ${quedan} días de clase que quedan hasta el ${finTxt}.`
-    : `Las clases terminaron el ${finTxt}.`;
+    ? `Con el ritmo que ${tu ? "llevas" : "lleva " + nombre(actual)} desde el ${dm(LECTIVOS[0].fecha)} (${hechos} días de clase, unas ${semanas} semanas), repetido en los ${quedan} días de clase que quedan hasta el ${dm(fin)}.`
+    : `Las clases terminaron el ${dm(fin)}.`;
 
   const agotan = filas.filter(r => r.pr.tipo === "agota");
   const sinMargen = filas.filter(r => r.pr.tipo === "limite" || r.pr.tipo === "perdida");
@@ -1420,7 +1445,8 @@ function renderProyeccion() {
     const r = agotan[0];
     ico = "🚨"; cls = "mal";
     txt = `A este ritmo ${tu ? "te quedas" : quien + " se queda"} sin margen en <strong>${r.m.nombre}</strong> ${cuando(r.pr.fecha)}.`;
-    if (agotan.length > 1) extra = `También en ${agotan.slice(1).map(r => `${r.m.nombre} (${cuando(r.pr.fecha).replace(/^a /, "")})`).join(", ")}.`;
+    extra = `${tu ? "Llevas" : "Lleva"} ${r.f} ${r.f === 1 ? "falta" : "faltas"} en ${semanas} semanas de clase: ${ritmoTxt(r.pr.semanal)}.`;
+    if (agotan.length > 1) extra += ` También en ${agotan.slice(1).map(r => `${r.m.nombre} (${cuando(r.pr.fecha).replace(/^a /, "")})`).join(", ")}.`;
   } else if (sinMargen.length) {
     ico = "⚠️"; cls = "mal";
     txt = `${tu ? "Ya no te queda" : "A " + quien + " ya no le queda"} margen en <strong>${sinMargen.map(r => r.m.nombre).join(", ")}</strong>.`;
@@ -1433,7 +1459,7 @@ function renderProyeccion() {
     ico = "✅"; cls = "bien";
     txt = `A este ritmo ${tu ? "llegas a febrero sin quedarte" : quien + " llega a febrero sin quedarse"} sin margen en ningún módulo.`;
     const r = justos[0] || filas.find(r => r.pr.tipo === "ok");
-    if (r) extra = `El más justo: ${r.m.nombre}, acabaría con ~${r.pr.final} de ${r.m.max} faltas.`;
+    if (r) extra = `El más justo: ${r.m.nombre} (${ritmoTxt(r.pr.semanal)}), acabaría con ~${r.pr.final} de ${r.m.max} faltas.`;
   }
   $("proyTop").className = "proy-top " + cls;
   $("proyTop").innerHTML = `<span class="ico" aria-hidden="true">${ico}</span><p>${txt}${extra ? `<small>${extra}</small>` : ""}</p>`;
@@ -1446,7 +1472,7 @@ function renderProyeccion() {
     const prev = Math.min(100, ((pr.final ?? f) / m.max) * 100), ya = Math.min(100, (f / m.max) * 100);
     return `
       <div class="pr ${claseFila[pr.tipo] || ""}">
-        <div class="pr-top"><b>${m.nombre}</b><span>${estadoTxt}</span></div>
+        <div class="pr-top"><b>${m.nombre}</b><span>${estadoTxt}${pr.semanal ? ` · ${ritmoTxt(pr.semanal)}` : ""}</span></div>
         <div class="pbar"><div class="prev" style="width:${prev}%"></div><div class="ya" style="width:${ya}%"></div></div>
       </div>`;
   }).join("");
@@ -1485,7 +1511,7 @@ function renderGrid() {
     if (mio) {
       const [menos, mas, menosR, masR] = el.querySelectorAll(".btns button");
       menos.onclick = () => cambiar("faltas", m, -1);
-      mas.onclick = () => cambiar("faltas", m, 1);
+      mas.onclick = () => pedirFecha(m);
       menosR.onclick = () => cambiar("retrasos", m, -1);
       masR.onclick = () => cambiar("retrasos", m, 1);
     }
@@ -1552,7 +1578,65 @@ async function migrar() {
 // Retrasos: transacción sobre el contador.
 // Faltas: el contador y su entrada con fecha en el registro se escriben juntos en una
 // sola operación, así nunca queda uno sin el otro.
-async function cambiar(tipo, m, d) {
+// ── Elegir el día de la falta ────────────────────────────────
+
+let fechaModulo = null;   // módulo de la falta que se está apuntando
+
+// Días de clase (hasta hoy) en los que el módulo tiene clase según el horario
+function diasConClase(m) {
+  const hoy = hoyISO();
+  return LECTIVOS.filter(d => d.fecha <= hoy && HORARIO[m.id][d.dia] > 0).map(d => d.fecha);
+}
+function diaCorto(iso) {
+  return fechaUTC(iso).toLocaleDateString("es-ES", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" }).replace(/\./g, "");
+}
+
+function pedirFecha(m) {
+  if (!yo || actual !== yo) return;
+  fechaModulo = m;
+  const dias = diasConClase(m), input = $("fFecha").elements.fecha;
+  $("fechaSub").textContent = m.nombre;
+  $("fechaMsg").textContent = "";
+  input.min = CALENDARIO.inicio;
+  input.max = hoyISO();
+  input.value = dias.at(-1) || hoyISO();      // por defecto, la última clase de ese módulo
+  // Atajos con las últimas clases de ese módulo
+  $("fechaRapidas").innerHTML = dias.slice(-4).reverse().map((f, i) =>
+    `<button type="button" data-fecha="${f}">${f === hoyISO() ? "Hoy" : diaCorto(f)}</button>`).join("");
+  marcarRapida();
+  $("fechaModal").hidden = false;
+  $("fechaRapidas").querySelector("button")?.focus();
+}
+function marcarRapida() {
+  const v = $("fFecha").elements.fecha.value;
+  $("fechaRapidas").querySelectorAll("button").forEach(b => b.classList.toggle("on", b.dataset.fecha === v));
+}
+function cerrarFecha() { $("fechaModal").hidden = true; fechaModulo = null; }
+
+$("fechaRapidas").onclick = ev => {
+  const f = ev.target.closest("[data-fecha]")?.dataset.fecha;
+  if (f) { $("fFecha").elements.fecha.value = f; marcarRapida(); $("fechaMsg").textContent = ""; }
+};
+$("fFecha").elements.fecha.oninput = () => { marcarRapida(); $("fechaMsg").textContent = ""; };
+$("fechaCerrar").onclick = cerrarFecha;
+$("fechaModal").onclick = ev => { if (ev.target === $("fechaModal")) cerrarFecha(); };
+$("fFecha").onsubmit = ev => {
+  ev.preventDefault();
+  const m = fechaModulo, f = ev.target.elements.fecha.value;
+  if (!m) return;
+  const msg = t => { $("fechaMsg").textContent = t; };
+  if (!f) return msg("Elige una fecha");
+  if (f > hoyISO()) return msg("No puedes apuntar una falta de un día que todavía no ha llegado");
+  if (f < CALENDARIO.inicio) return msg("Esa fecha es anterior al inicio de las clases");
+  const lectivo = LECTIVOS.find(d => d.fecha === f);
+  if (!lectivo) return msg("Ese día no hubo clase (fin de semana, festivo o vacaciones)");
+  if (!HORARIO[m.id][lectivo.dia]) return msg(`Los ${DIAS_SEMANA[lectivo.dia]} no hay clase de ${m.nombre}`);
+  cerrarFecha();
+  cambiar("faltas", m, 1, f);
+};
+const DIAS_SEMANA = ["lunes", "martes", "miércoles", "jueves", "viernes"];
+
+async function cambiar(tipo, m, d, fecha = fechaFalta()) {
   if (!yo || actual !== yo) return; // solo tus propias faltas (las reglas también lo impiden)
   if (d < 0 && datos[tipo][yo][m.id] === 0) return;
   ultimo = { tipo, id: m.id };
@@ -1565,8 +1649,8 @@ async function cambiar(tipo, m, d) {
     const mios = { ...(registro[yo] || {}) };
     if (d > 0) {
       const id = push(ref(db, `registro/${yo}`)).key;
-      cambios[`registro/${yo}/${id}`] = { modulo: m.id, fecha: fechaFalta(), ts: serverTimestamp() };
-      mios[id] = { modulo: m.id, fecha: fechaFalta(), ts: Date.now() };
+      cambios[`registro/${yo}/${id}`] = { modulo: m.id, fecha, ts: serverTimestamp() };
+      mios[id] = { modulo: m.id, fecha, ts: Date.now() };
     } else {
       const ult = entradas(yo, m.id)[0];   // se quita la falta más reciente de ese módulo
       if (ult) { cambios[`registro/${yo}/${ult[0]}`] = cambios[`muro/${yo}/${ult[0]}`] = null; delete mios[ult[0]]; }
@@ -1717,7 +1801,9 @@ function pintarPost(el) {
   const e = el._e, s = muroSocial[e.clave] || {};
   const modulo = MODULOS.find(m => m.id === e.modulo).nombre;
   el.querySelector(".av").innerHTML = avatar(e.p);
-  el.querySelector(".post-txt").innerHTML = `<strong>${esc(nombre(e.p))}</strong>${e.p === yo ? ' <span class="tu">(tú)</span>' : ""} ha faltado a <strong>${esc(modulo)}</strong>`;
+  const apuntada = e.ts ? new Date(e.ts) : null;
+  const otroDia = apuntada && e.fecha !== `${apuntada.getFullYear()}-${String(apuntada.getMonth() + 1).padStart(2, "0")}-${String(apuntada.getDate()).padStart(2, "0")}`;
+  el.querySelector(".post-txt").innerHTML = `<strong>${esc(nombre(e.p))}</strong>${e.p === yo ? ' <span class="tu">(tú)</span>' : ""} ha faltado a <strong>${esc(modulo)}</strong>${otroDia ? ` el ${fechaUTC(e.fecha).toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" })}` : ""}`;
   el.querySelector(".post-cuando").textContent = haceCuanto(e.ts, e.fecha);
   // Reacciones: contador por emoji; al pulsarlo se ve quién reaccionó
   const quienes = k => PERSONAS.filter(p => s.reacciones?.[k]?.[p]);   // siempre en el orden del grupo

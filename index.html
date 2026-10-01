@@ -173,6 +173,41 @@
     .rk.oro::after, .medalla, .amor svg, .amor i { animation: none !important; }
   }
 
+  /* PROYECCIÓN */
+  .proy-top {
+    border: 1.5px solid var(--border); border-radius: 18px; padding: 24px 26px; margin-bottom: 18px;
+    background: rgba(19,26,40,.35); display: flex; gap: 18px; align-items: center;
+  }
+  .proy-top .ico { font-size: 2.2rem; line-height: 1; flex: none; }
+  .proy-top p { margin: 0; font-size: 1.05rem; line-height: 1.55; }
+  .proy-top p strong { font-weight: 600; }
+  .proy-top small { display: block; color: var(--muted); font-size: .78rem; margin-top: 6px; }
+  .proy-top.mal { border-color: var(--bad); background: rgba(255,90,106,.08); }
+  .proy-top.mal strong { color: var(--bad); }
+  .proy-top.bien { border-color: rgba(61,220,132,.6); }
+  .proy-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px 16px; }
+  .pr { border: 1px solid var(--border-soft); border-radius: 12px; padding: 12px 14px; font-size: .8rem; }
+  .pr { display: flex; flex-direction: column; }
+  .pr .pr-top { display: grid; gap: 2px; margin-bottom: 10px; flex: 1; align-content: start; }
+  .pr .pr-top b { font-weight: 500; line-height: 1.35; }
+  .pr .pr-top span { color: var(--muted); font-size: .74rem; }
+  .pr.mal .pr-top span, .pr.mal .pr-top b { color: var(--bad); }
+  .pr.justo .pr-top span { color: var(--warn); }
+  .pr.bien .pr-top span { color: #3ddc84; }
+  /* barra: faltas actuales (relleno), previsión al final (rayado) y el límite (línea) */
+  .pbar { position: relative; height: 6px; border-radius: 6px; background: var(--border-soft); }
+  .pbar .ya { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 6px; background: var(--cyan); }
+  .pbar .prev {
+    position: absolute; left: 0; top: 0; bottom: 0; border-radius: 6px; opacity: .55;
+    background: repeating-linear-gradient(135deg, var(--c, var(--cyan)) 0 4px, transparent 4px 7px);
+  }
+  .pr.mal .pbar { --c: var(--bad); }
+  .pr.justo .pbar { --c: var(--warn); }
+  .proy-leyenda { color: var(--muted); font-size: .72rem; text-align: center; margin-top: 14px; }
+  .mod .proy { font-size: .72rem; color: var(--muted); margin-top: 4px; }
+  .mod .proy.mal { color: var(--bad); }
+  .mod .proy.justo { color: var(--warn); }
+
   /* SELECTOR */
   .players { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin-bottom: 32px; }
   .players .pill { padding: 9px 22px; }
@@ -323,7 +358,7 @@
   @media (max-width: 900px) {
     .hero { grid-template-columns: 1fr; padding-top: 30px; }
     .ranking { grid-template-columns: repeat(2, 1fr); }
-    .grid { grid-template-columns: repeat(2, 1fr); }
+    .grid, .proy-list { grid-template-columns: repeat(2, 1fr); }
     .fwrap { grid-template-columns: 1fr 1fr; }
   }
   @media (max-width: 560px) {
@@ -331,7 +366,8 @@
     .links { gap: 10px; }
     .sync span, .user span:last-child { display: none; }
     .user { padding: 4px; }
-    .ranking, .grid { grid-template-columns: 1fr; }
+    .ranking, .grid, .proy-list { grid-template-columns: 1fr; }
+    .proy-top { padding: 18px; }
     .av.grande { width: 160px; height: 160px; font-size: 4rem; }
     .stats { padding: 20px; }
     .stats b { font-size: 1.6rem; }
@@ -351,6 +387,7 @@
       <span class="sync" id="sync"><i></i><span>Conectando…</span></span>
       <a href="#inicio">Inicio</a>
       <a href="#ranking">Ranking</a>
+      <a href="#proyeccion">Proyección</a>
       <a href="#modulos">Módulos</a>
       <button class="user" id="userBtn" title="Mi perfil"><span class="av" id="userAv"></span><span id="userName"></span></button>
       <button class="pill ghost" id="salir">Salir</button>
@@ -381,6 +418,17 @@
     <div class="ranking" id="rankingList"></div>
   </section>
 
+  <section id="proyeccion">
+    <div class="head">
+      <div class="over">Proyección</div>
+      <h2>A este ritmo…</h2>
+      <p id="proySub"></p>
+    </div>
+    <div class="proy-top" id="proyTop"></div>
+    <div class="proy-list" id="proyList"></div>
+    <p class="proy-leyenda">Barra llena: faltas actuales · rayada: previsión a final de curso · el total es el límite del módulo.</p>
+  </section>
+
   <section id="modulos">
     <div class="head">
       <div class="over">Módulos</div>
@@ -404,6 +452,7 @@
       <ul>
         <li><a href="#inicio">Inicio</a></li>
         <li><a href="#ranking">Ranking</a></li>
+        <li><a href="#proyeccion">Proyección</a></li>
         <li><a href="#modulos">Módulos</a></li>
       </ul>
     </div>
@@ -521,21 +570,92 @@ const auth = getAuth(app);
 const db = getDatabase(app);
 
 const MODULOS = [
-  { id: "SSG",   nombre: "SSG",            corto: "SSG", max: 16, horas: 96 },
-  { id: "PGV",   nombre: "PGV",            corto: "PGV", max: 16, horas: 96 },
-  { id: "FOL",   nombre: "FOL",            corto: "FOL", max: 16, horas: 96 },
-  { id: "PROY",  nombre: "Proyecto",       corto: "PRY", max: 13, horas: 64 },
-  { id: "SOST",  nombre: "Sostenibilidad", corto: "SOS", max: 6,  horas: 32 },
-  { id: "AD",    nombre: "Acceso a Datos", corto: "AD",  max: 29, horas: 147 },
-  { id: "DI",    nombre: "Interfaces",     corto: "DI",  max: 27, horas: 138 },
-  { id: "PGL",   nombre: "PGL",            corto: "PGL", max: 18, horas: 110 },
-  { id: "CIBER", nombre: "Ciberseguridad", corto: "CIB", max: 16, horas: 96 }
+  { id: "SSG",   nombre: "Sistemas de gestión empresarial",                corto: "SSG", max: 16, horas: 96 },
+  { id: "PGV",   nombre: "Programación de servicios y procesos",           corto: "PGV", max: 16, horas: 96 },
+  { id: "FOL",   nombre: "Itinerario personal para la empleabilidad II",   corto: "IPW", max: 16, horas: 96 },
+  { id: "PROY",  nombre: "Proyecto intermodular",                          corto: "PRY", max: 13, horas: 64 },
+  { id: "SOST",  nombre: "Sostenibilidad aplicada al sistema productivo",  corto: "SOS", max: 6,  horas: 32 },
+  { id: "AD",    nombre: "Acceso a datos",                                 corto: "AD",  max: 29, horas: 147 },
+  { id: "DI",    nombre: "Desarrollo de interfaces",                       corto: "DI",  max: 27, horas: 138 },
+  { id: "PGL",   nombre: "Programación multimedia y dispositivos móviles", corto: "PGL", max: 18, horas: 110 },
+  { id: "CIBER", nombre: "Ciberseguridad",                                 corto: "CIB", max: 16, horas: 96 }
 ];
 // Ids internos de cada persona. En la base de datos:
 //   faltas/{persona}/{modulo}, retrasos/{persona}/{modulo}, perfiles/{persona}
 //   usuarios/{uid} → { persona }   duenos/{persona} → { uid, codigo }
 const PERSONAS = ["Sebastian", "Matías", "Ian", "Joaquín"];
 const TIPOS = ["faltas", "retrasos"];
+
+// ── Calendario y horario del curso (para la proyección) ──────
+// Fechas en formato AAAA-MM-DD. Si cambian, basta con editarlas aquí.
+const CALENDARIO = {
+  inicio: "2026-09-17",          // primer día de clase (jueves)
+  fin: "2027-02-20",             // último día de clase
+  festivos: ["2026-10-12", "2026-11-02", "2026-12-07", "2026-12-08", "2027-02-02", "2027-02-09"],
+  vacaciones: [["2026-12-22", "2027-01-07"]]   // Navidad (ambos días incluidos)
+};
+
+// Sesiones de cada módulo por día de la semana: [lunes, martes, miércoles, jueves, viernes]
+const HORARIO = {
+  SSG:   [0, 0, 1, 1, 1],
+  PGV:   [0, 0, 1, 2, 0],
+  FOL:   [1, 0, 2, 0, 0],   // IPW · Itinerario personal para la empleabilidad II
+  PROY:  [0, 1, 1, 0, 0],   // PL9 · Proyecto intermodular
+  SOST:  [0, 0, 0, 0, 1],   // SOJ · Sostenibilidad aplicada al sistema productivo
+  AD:    [2, 2, 0, 2, 0],   // AED
+  DI:    [1, 2, 1, 1, 0],   // DAD
+  PGL:   [2, 0, 0, 0, 2],
+  CIBER: [0, 1, 0, 0, 2]    // A10 · Módulo optativo de diseño propio
+};
+
+// Lista de todos los días lectivos (lunes a viernes que no son festivo ni vacaciones)
+// con el día de la semana (0 = lunes … 4 = viernes)
+const LECTIVOS = (() => {
+  const dias = [];
+  const libre = f => CALENDARIO.festivos.includes(f) || CALENDARIO.vacaciones.some(([a, b]) => f >= a && f <= b);
+  // Se trabaja en UTC para que el cambio de hora no descuadre los días
+  for (let d = new Date(CALENDARIO.inicio + "T00:00:00Z"); ; d.setUTCDate(d.getUTCDate() + 1)) {
+    const fecha = d.toISOString().slice(0, 10);
+    if (fecha > CALENDARIO.fin) break;
+    const dia = d.getUTCDay();
+    if (dia !== 0 && dia !== 6 && !libre(fecha)) dias.push({ fecha, dia: dia - 1 });
+  }
+  return dias;
+})();
+
+function hoyISO() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+// "a principios de enero", "a mediados de marzo"…
+function cuando(fechaISO) {
+  const [a, m, d] = fechaISO.split("-").map(Number);
+  const mes = new Date(Date.UTC(a, m - 1, d)).toLocaleDateString("es-ES", { month: "long", timeZone: "UTC" });
+  return `a ${d <= 10 ? "principios" : d <= 20 ? "mediados" : "finales"} de ${mes}`;
+}
+
+// Proyecta las faltas de un módulo suponiendo que se sigue faltando al mismo ritmo
+// (faltas por sesión de clase ya dada, según el horario) hasta el último día de clase.
+function proyeccion(f, max, id, hoy = hoyISO()) {
+  const sesiones = LECTIVOS.map(d => HORARIO[id][d.dia]);
+  const hechos = LECTIVOS.filter(d => d.fecha <= hoy).length;   // días lectivos ya pasados
+  if (hechos >= LECTIVOS.length) return { tipo: "fin" };
+  if (f > max) return { tipo: "perdida" };
+  if (f === max) return { tipo: "limite" };
+  if (f === 0) return { tipo: "cero", final: 0 };
+  const total = sesiones.reduce((a, b) => a + b, 0);
+  const pasadas = sesiones.slice(0, hechos).reduce((a, b) => a + b, 0);
+  if (hechos < 5 || pasadas === 0) return { tipo: "pocos" };
+  const final = f * total / pasadas;
+  if (final < max) return { tipo: final >= max * .75 ? "justo" : "ok", final: Math.round(final) };
+  // Primer día en el que, a este ritmo, se llegaría al límite (se compara en enteros: acum·f ≥ max·pasadas)
+  let acum = 0;
+  for (let i = 0; i < LECTIVOS.length; i++) {
+    acum += sesiones[i];
+    if (acum * f >= max * pasadas) return { tipo: "agota", fecha: LECTIVOS[i].fecha, final: Math.round(final) };
+  }
+}
 
 let datos = { faltas: vacio(), retrasos: vacio() };
 let perfiles = {};
@@ -972,6 +1092,73 @@ function renderPlayers() {
   ro.querySelector("button").onclick = () => verPerfil(actual);
 }
 
+function lineaProy(f, m) {
+  const max = m.max, pr = proyeccion(f, max, m.id);
+  if (pr.tipo === "agota") return `<div class="proy mal">📈 Sin margen ${cuando(pr.fecha)}</div>`;
+  if (pr.tipo === "justo") return `<div class="proy justo">📈 Acabaría con ~${pr.final} de ${max}</div>`;
+  if (pr.tipo === "ok") return `<div class="proy">📈 Acabaría con ~${pr.final} de ${max}</div>`;
+  return "";
+}
+
+// ── Sección de proyección ─────────────────────────────────────
+
+function renderProyeccion() {
+  const tu = actual === yo, quien = esc(nombre(actual));
+  const filas = MODULOS.map(m => ({ m, f: datos.faltas[actual][m.id], pr: proyeccion(datos.faltas[actual][m.id], m.max, m.id) }));
+  const orden = { perdida: 0, limite: 1, agota: 2, justo: 3, ok: 4, cero: 5, pocos: 6, fin: 7 };
+  filas.sort((a, b) => orden[a.pr.tipo] - orden[b.pr.tipo]
+    || (a.pr.fecha || "").localeCompare(b.pr.fecha || "")
+    || (b.pr.final ?? b.f) / b.m.max - (a.pr.final ?? a.f) / a.m.max);
+
+  const fin = LECTIVOS[LECTIVOS.length - 1].fecha, hoy = hoyISO();
+  const quedan = LECTIVOS.filter(d => d.fecha > hoy).length;
+  const finTxt = new Date(fin + "T00:00:00Z").toLocaleDateString("es-ES", { day: "numeric", month: "long", timeZone: "UTC" });
+  $("proySub").textContent = quedan
+    ? `Calculado con ${tu ? "tus faltas" : "las faltas de " + nombre(actual)} hasta hoy, el horario de cada módulo y los ${quedan} días de clase que quedan hasta el ${finTxt}.`
+    : `Las clases terminaron el ${finTxt}.`;
+
+  const agotan = filas.filter(r => r.pr.tipo === "agota");
+  const sinMargen = filas.filter(r => r.pr.tipo === "limite" || r.pr.tipo === "perdida");
+  const justos = filas.filter(r => r.pr.tipo === "justo");
+  let ico, cls = "", txt, extra = "";
+  if (filas[0].pr.tipo === "fin") {
+    ico = "🎓"; txt = "El curso ya ha terminado: no hay nada que proyectar.";
+  } else if (agotan.length) {
+    const r = agotan[0];
+    ico = "🚨"; cls = "mal";
+    txt = `A este ritmo ${tu ? "te quedas" : quien + " se queda"} sin margen en <strong>${r.m.nombre}</strong> ${cuando(r.pr.fecha)}.`;
+    if (agotan.length > 1) extra = `También en ${agotan.slice(1).map(r => `${r.m.nombre} (${cuando(r.pr.fecha).replace(/^a /, "")})`).join(", ")}.`;
+  } else if (sinMargen.length) {
+    ico = "⚠️"; cls = "mal";
+    txt = `${tu ? "Ya no te queda" : "A " + quien + " ya no le queda"} margen en <strong>${sinMargen.map(r => r.m.nombre).join(", ")}</strong>.`;
+    extra = "En el resto de módulos no llegaría al límite a este ritmo.";
+  } else if (filas.every(r => r.pr.tipo === "cero")) {
+    ico = "😇"; cls = "bien"; txt = `Sin faltas por ahora: ${tu ? "vas" : "va"} perfecto.`;
+  } else if (filas.some(r => r.pr.tipo === "pocos")) {
+    ico = "⏳"; txt = "Todavía no hay suficientes días de clase para calcular un ritmo fiable.";
+  } else {
+    ico = "✅"; cls = "bien";
+    txt = `A este ritmo ${tu ? "llegas a febrero sin quedarte" : quien + " llega a febrero sin quedarse"} sin margen en ningún módulo.`;
+    const r = justos[0] || filas.find(r => r.pr.tipo === "ok");
+    if (r) extra = `El más justo: ${r.m.nombre}, acabaría con ~${r.pr.final} de ${r.m.max} faltas.`;
+  }
+  $("proyTop").className = "proy-top " + cls;
+  $("proyTop").innerHTML = `<span class="ico" aria-hidden="true">${ico}</span><p>${txt}${extra ? `<small>${extra}</small>` : ""}</p>`;
+
+  const texto = { perdida: "Evaluación perdida", limite: "Sin margen ya", cero: "Sin faltas", pocos: "Faltan datos", fin: "Curso terminado" };
+  const claseFila = { perdida: "mal", limite: "mal", agota: "mal", justo: "justo", ok: "bien", cero: "bien" };
+  $("proyList").innerHTML = filas.map(({ m, f, pr }) => {
+    const estadoTxt = pr.tipo === "agota" ? `Sin margen ${cuando(pr.fecha)}`
+      : pr.tipo === "justo" || pr.tipo === "ok" ? `~${pr.final} de ${m.max} al final` : texto[pr.tipo];
+    const prev = Math.min(100, ((pr.final ?? f) / m.max) * 100), ya = Math.min(100, (f / m.max) * 100);
+    return `
+      <div class="pr ${claseFila[pr.tipo] || ""}">
+        <div class="pr-top"><b>${m.nombre}</b><span>${estadoTxt}</span></div>
+        <div class="pbar"><div class="prev" style="width:${prev}%"></div><div class="ya" style="width:${ya}%"></div></div>
+      </div>`;
+  }).join("");
+}
+
 function renderGrid() {
   const cont = $("grid");
   const mio = actual === yo;
@@ -994,7 +1181,7 @@ function renderGrid() {
         <div class="mh">${m.horas} h<br>límite ${m.max}</div>
       </div>
       <div class="mname">${m.nombre}</div>
-      <div class="st">${e.txt}</div>
+      <div class="st">${e.txt}</div>${lineaProy(f, m)}
       <div class="bar"><div class="fill" style="width:${pct}%"></div></div>
       <div class="mbot">
         <div class="cnt">${f}<span> / ${m.max}</span></div>${botones("falta")}
@@ -1037,7 +1224,7 @@ async function cambiar(tipo, m, d) {
 
 function render() {
   if (!yo) return;
-  renderUser(); renderStats(); renderRanking(); renderPlayers(); renderGrid();
+  renderUser(); renderStats(); renderRanking(); renderProyeccion(); renderPlayers(); renderGrid();
   if (viendo) verPerfil(viendo);
 }
 

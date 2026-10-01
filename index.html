@@ -585,25 +585,39 @@ const MODULOS = [
 const PERSONAS = ["Sebastian", "Matías", "Ian", "Joaquín"];
 const TIPOS = ["faltas", "retrasos"];
 
-// ── Calendario del curso (para la proyección) ────────────────
+// ── Calendario y horario del curso (para la proyección) ──────
 // Fechas en formato AAAA-MM-DD. Si cambian, basta con editarlas aquí.
 const CALENDARIO = {
-  inicio: "2026-09-14",          // primer día de clase
-  fin: "2027-02-12",             // último día de clase (a mediados de febrero)
+  inicio: "2026-09-17",          // primer día de clase (jueves)
+  fin: "2027-02-20",             // último día de clase
   festivos: ["2026-10-12", "2026-12-07", "2026-12-08"],
   vacaciones: [["2026-12-23", "2027-01-07"]]   // Navidad (ambos días incluidos)
 };
 
+// Sesiones de cada módulo por día de la semana: [lunes, martes, miércoles, jueves, viernes]
+const HORARIO = {
+  SSG:   [0, 0, 1, 1, 1],
+  PGV:   [0, 0, 1, 2, 0],
+  FOL:   [1, 0, 2, 0, 0],   // IPW · Itinerario personal para la empleabilidad II
+  PROY:  [0, 1, 1, 0, 0],   // PL9 · Proyecto intermodular
+  SOST:  [0, 0, 0, 0, 1],   // SOJ · Sostenibilidad aplicada al sistema productivo
+  AD:    [2, 2, 0, 2, 0],   // AED
+  DI:    [1, 2, 1, 1, 0],   // DAD
+  PGL:   [2, 0, 0, 0, 2],
+  CIBER: [0, 1, 0, 0, 2]    // A10 · Módulo optativo de diseño propio
+};
+
 // Lista de todos los días lectivos (lunes a viernes que no son festivo ni vacaciones)
+// con el día de la semana (0 = lunes … 4 = viernes)
 const LECTIVOS = (() => {
   const dias = [];
   const libre = f => CALENDARIO.festivos.includes(f) || CALENDARIO.vacaciones.some(([a, b]) => f >= a && f <= b);
   // Se trabaja en UTC para que el cambio de hora no descuadre los días
   for (let d = new Date(CALENDARIO.inicio + "T00:00:00Z"); ; d.setUTCDate(d.getUTCDate() + 1)) {
-    const f = d.toISOString().slice(0, 10);
-    if (f > CALENDARIO.fin) break;
+    const fecha = d.toISOString().slice(0, 10);
+    if (fecha > CALENDARIO.fin) break;
     const dia = d.getUTCDay();
-    if (dia !== 0 && dia !== 6 && !libre(f)) dias.push(f);
+    if (dia !== 0 && dia !== 6 && !libre(fecha)) dias.push({ fecha, dia: dia - 1 });
   }
   return dias;
 })();
@@ -621,21 +635,25 @@ function cuando(fechaISO) {
 }
 
 // Proyecta las faltas de un módulo suponiendo que se sigue faltando al mismo ritmo
-// (faltas por día lectivo transcurrido) hasta el último día de clase.
-function proyeccion(f, max, hoy = hoyISO()) {
-  const total = LECTIVOS.length;
-  const pasados = LECTIVOS.filter(d => d <= hoy).length;
-  if (pasados >= total) return { tipo: "fin" };
+// (faltas por sesión de clase ya dada, según el horario) hasta el último día de clase.
+function proyeccion(f, max, id, hoy = hoyISO()) {
+  const sesiones = LECTIVOS.map(d => HORARIO[id][d.dia]);
+  const hechos = LECTIVOS.filter(d => d.fecha <= hoy).length;   // días lectivos ya pasados
+  if (hechos >= LECTIVOS.length) return { tipo: "fin" };
   if (f > max) return { tipo: "perdida" };
   if (f === max) return { tipo: "limite" };
   if (f === 0) return { tipo: "cero", final: 0 };
-  if (pasados < 5) return { tipo: "pocos" };
-  const ritmo = f / pasados;
-  const final = f + ritmo * (total - pasados);
+  const total = sesiones.reduce((a, b) => a + b, 0);
+  const pasadas = sesiones.slice(0, hechos).reduce((a, b) => a + b, 0);
+  if (hechos < 5 || pasadas === 0) return { tipo: "pocos" };
+  const final = f * total / pasadas;
   if (final < max) return { tipo: final >= max * .75 ? "justo" : "ok", final: Math.round(final) };
-  // Día lectivo en el que se llegaría al límite
-  const dia = Math.min(total, Math.ceil(max / ritmo));
-  return { tipo: "agota", fecha: LECTIVOS[dia - 1], final: Math.round(final) };
+  // Primer día en el que, a este ritmo, se llegaría al límite (se compara en enteros: acum·f ≥ max·pasadas)
+  let acum = 0;
+  for (let i = 0; i < LECTIVOS.length; i++) {
+    acum += sesiones[i];
+    if (acum * f >= max * pasadas) return { tipo: "agota", fecha: LECTIVOS[i].fecha, final: Math.round(final) };
+  }
 }
 
 let datos = { faltas: vacio(), retrasos: vacio() };
@@ -1073,8 +1091,8 @@ function renderPlayers() {
   ro.querySelector("button").onclick = () => verPerfil(actual);
 }
 
-function lineaProy(f, max) {
-  const pr = proyeccion(f, max);
+function lineaProy(f, m) {
+  const max = m.max, pr = proyeccion(f, max, m.id);
   if (pr.tipo === "agota") return `<div class="proy mal">📈 Sin margen ${cuando(pr.fecha)}</div>`;
   if (pr.tipo === "justo") return `<div class="proy justo">📈 Acabaría con ~${pr.final} de ${max}</div>`;
   if (pr.tipo === "ok") return `<div class="proy">📈 Acabaría con ~${pr.final} de ${max}</div>`;
@@ -1085,17 +1103,17 @@ function lineaProy(f, max) {
 
 function renderProyeccion() {
   const tu = actual === yo, quien = esc(nombre(actual));
-  const filas = MODULOS.map(m => ({ m, f: datos.faltas[actual][m.id], pr: proyeccion(datos.faltas[actual][m.id], m.max) }));
+  const filas = MODULOS.map(m => ({ m, f: datos.faltas[actual][m.id], pr: proyeccion(datos.faltas[actual][m.id], m.max, m.id) }));
   const orden = { perdida: 0, limite: 1, agota: 2, justo: 3, ok: 4, cero: 5, pocos: 6, fin: 7 };
   filas.sort((a, b) => orden[a.pr.tipo] - orden[b.pr.tipo]
     || (a.pr.fecha || "").localeCompare(b.pr.fecha || "")
     || (b.pr.final ?? b.f) / b.m.max - (a.pr.final ?? a.f) / a.m.max);
 
-  const fin = LECTIVOS[LECTIVOS.length - 1], hoy = hoyISO();
-  const quedan = LECTIVOS.filter(d => d > hoy).length;
+  const fin = LECTIVOS[LECTIVOS.length - 1].fecha, hoy = hoyISO();
+  const quedan = LECTIVOS.filter(d => d.fecha > hoy).length;
   const finTxt = new Date(fin + "T00:00:00Z").toLocaleDateString("es-ES", { day: "numeric", month: "long", timeZone: "UTC" });
   $("proySub").textContent = quedan
-    ? `Calculado con ${tu ? "tus faltas" : "las faltas de " + nombre(actual)} hasta hoy y los ${quedan} días de clase que quedan hasta el ${finTxt}.`
+    ? `Calculado con ${tu ? "tus faltas" : "las faltas de " + nombre(actual)} hasta hoy, el horario de cada módulo y los ${quedan} días de clase que quedan hasta el ${finTxt}.`
     : `Las clases terminaron el ${finTxt}.`;
 
   const agotan = filas.filter(r => r.pr.tipo === "agota");
@@ -1162,7 +1180,7 @@ function renderGrid() {
         <div class="mh">${m.horas} h<br>límite ${m.max}</div>
       </div>
       <div class="mname">${m.nombre}</div>
-      <div class="st">${e.txt}</div>${lineaProy(f, m.max)}
+      <div class="st">${e.txt}</div>${lineaProy(f, m)}
       <div class="bar"><div class="fill" style="width:${pct}%"></div></div>
       <div class="mbot">
         <div class="cnt">${f}<span> / ${m.max}</span></div>${botones("falta")}

@@ -17,17 +17,20 @@ al momento sin recargar.
   perfil** y un **nombre visible**. La foto se recorta a 320×320 y se guarda en la
   propia base de datos.
 - Los retrasos se cuentan aparte de las faltas (no suman para el límite).
-- **Proyección**: con las faltas que llevas y los días de clase que han pasado se
-  calcula tu ritmo y se estima cuándo te quedarías sin margen en cada módulo (por
-  ejemplo, "a este ritmo te quedas sin margen en Interfaces a mediados de enero") o
-  con cuántas faltas acabarías el curso. Se supone que las faltas se reparten por
-  igual entre todos los días lectivos.
+- **Proyección**: con las faltas que llevas y las clases de cada módulo que ya han
+  pasado (según el horario) se calcula tu ritmo y se estima cuándo te quedarías sin
+  margen en cada módulo (por ejemplo, "a este ritmo te quedas sin margen en
+  Interfaces a mediados de enero") o con cuántas faltas acabarías el curso.
 
-### Calendario del curso
+### Calendario y horario del curso
 
-La proyección usa el objeto `CALENDARIO` de `index.html`: primer y último día de
-clase, festivos y vacaciones. Si alguna fecha no coincide con la de vuestro centro,
-basta con cambiarla ahí.
+La proyección usa dos objetos de `index.html`:
+
+- `CALENDARIO`: primer y último día de clase, festivos y vacaciones.
+- `HORARIO`: cuántas sesiones tiene cada módulo el lunes, martes, miércoles, jueves
+  y viernes.
+
+Si cambia alguna fecha o el horario, basta con editarlos ahí.
 
 ### Estructura de la base de datos
 

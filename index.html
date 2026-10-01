@@ -7,7 +7,13 @@
 <meta name="description" content="Control de faltas y retrasos de 2DAM en tiempo real.">
 <meta name="theme-color" content="#1a2233">
 <link rel="icon" type="image/png" href="img/favicon.png" sizes="64x64">
-<link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+<link rel="apple-touch-icon" href="img/apple-touch-icon.png" sizes="180x180">
+<!-- App instalable (PWA) -->
+<link rel="manifest" href="manifest.json">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Faltas">
 <!-- Vista previa al compartir el enlace (WhatsApp, Telegram…) -->
 <meta property="og:title" content="Faltas 2DAM">
 <meta property="og:description" content="Control de faltas y retrasos de 2DAM en tiempo real.">
@@ -331,6 +337,32 @@
   }
   .toast.show { transform: translate(-50%, 0); opacity: 1; }
   .toast.alert { border-color: var(--bad); }
+  body.con-instalar .toast { bottom: 96px; }
+
+  /* AVISO PARA INSTALAR LA APP */
+  .instalar {
+    position: fixed; left: 16px; bottom: 16px; z-index: 35; display: flex; align-items: center; gap: 12px;
+    width: min(430px, calc(100% - 32px)); padding: 10px 12px 10px 10px; font-size: .8rem; line-height: 1.4;
+    border: 1.5px solid var(--border); border-radius: 16px; background: rgba(19,26,40,.94);
+    backdrop-filter: blur(8px); box-shadow: 0 10px 30px rgba(0,0,0,.35);
+  }
+  .instalar img { width: 38px; height: 38px; border-radius: 50%; flex: none; }
+  .instalar .txt { flex: 1; }
+  .instalar .txt b { font-weight: 500; }
+  .instalar .ios-txt, .instalar.ios .normal-txt, .instalar.ios #instalarBtn { display: none; }
+  .instalar.ios .ios-txt { display: inline; }
+  .instalar .ios-txt svg { width: 15px; height: 15px; vertical-align: -3px; stroke: var(--cyan); }
+  .instalar .pill { padding: 7px 14px; font-size: .78rem; flex: none; }
+  .instalar .cerrar-mini { background: none; border: none; color: var(--muted); font-size: 1.3rem; line-height: 1; cursor: pointer; padding: 2px 4px; flex: none; }
+  .instalar .cerrar-mini:hover { color: var(--text); }
+
+  /* AVISO SIN CONEXIÓN */
+  .offline {
+    position: fixed; top: 10px; left: 50%; transform: translateX(-50%); z-index: 40;
+    width: max-content; max-width: calc(100% - 32px); text-align: center;
+    background: var(--warn); color: #1a1205; font-size: .78rem; font-weight: 500; line-height: 1.4;
+    border-radius: 999px; padding: 7px 16px; box-shadow: 0 6px 20px rgba(0,0,0,.35);
+  }
 
   /* estado de la conexión con la base de datos */
   .sync { display: inline-flex; align-items: center; gap: 8px; font-size: .75rem; color: var(--muted); }
@@ -581,12 +613,27 @@
       <button id="exportar">Exportar datos</button>
       <button id="importar">Importar mis datos</button>
       <button id="reset">Reiniciar mis faltas y retrasos</button>
+      <button id="instalarPie" type="button" hidden>Instalar app</button>
       <input type="file" id="fileInput" accept=".json" hidden>
     </div>
   </div>
   <div class="copy">Sebastian · Matías · Ian · Joaquín</div>
 </footer>
 <div class="toast" id="toast"></div>
+
+<!-- Aviso de conexión: los cambios hechos sin red se envían al volver -->
+<div class="offline" id="offline" role="status" hidden>📡 Sin conexión · lo que apuntes se enviará al volver la red</div>
+
+<!-- Aviso para instalar la app (Android y ordenador: botón; iPhone: instrucciones) -->
+<div class="instalar" id="instalar" role="dialog" aria-label="Instalar la app" hidden>
+  <img src="img/icon-192.png" alt="">
+  <span class="txt">
+    <span class="normal-txt"><b>Instala Faltas 2DAM</b> para abrirla como una app, también sin conexión.</span>
+    <span class="ios-txt">Pulsa <b>Compartir</b> <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3M8 7l4-4 4 4M5 11v9h14v-9"/></svg> y luego <b>Añadir a pantalla de inicio</b></span>
+  </span>
+  <button class="pill" id="instalarBtn" type="button">Instalar app</button>
+  <button class="cerrar-mini" id="instalarCerrar" type="button" aria-label="Ahora no">×</button>
+</div>
 
 <!-- Pantalla de acceso: se muestra mientras no haya sesión iniciada -->
 <div class="auth" id="auth">
@@ -661,6 +708,51 @@
     <p class="msg" id="perfilMsg"></p>
   </div>
 </div>
+
+<!-- App instalable: service worker y aviso de instalación (independiente de Firebase) -->
+<script>
+if ("serviceWorker" in navigator) {
+  // Ruta relativa: funciona aunque la web esté en una subcarpeta (usuario.github.io/repo/)
+  addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(e => console.error("Service worker:", e)));
+}
+(() => {
+  const NO_MOSTRAR = "faltas2dam_instalar_no";   // fecha en la que se cerró el aviso
+  const caja = document.getElementById("instalar"), pie = document.getElementById("instalarPie");
+  const instalada = () => matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+  const esIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  const cerradoHacePoco = () => { try { return Date.now() - Number(localStorage.getItem(NO_MOSTRAR) || 0) < 30 * 864e5; } catch (e) { return false; } };
+  let aviso = null;   // evento beforeinstallprompt guardado para lanzarlo al pulsar el botón
+
+  function verCaja(si) { caja.hidden = !si; document.body.classList.toggle("con-instalar", si); }
+  function ofrecer(ios) {
+    if (instalada()) return;
+    caja.classList.toggle("ios", ios);
+    pie.hidden = false;                       // en el pie siempre queda el botón
+    if (!cerradoHacePoco()) verCaja(true);    // el aviso flotante, salvo si se cerró hace poco
+  }
+  function ocultarTodo() { verCaja(false); pie.hidden = true; }
+
+  addEventListener("beforeinstallprompt", e => { e.preventDefault(); aviso = e; ofrecer(false); });
+  addEventListener("appinstalled", () => { aviso = null; ocultarTodo(); });
+  matchMedia("(display-mode: standalone)").addEventListener?.("change", e => { if (e.matches) ocultarTodo(); });
+
+  async function instalar() {
+    if (!aviso) { if (esIOS) verCaja(true); return; }   // en iPhone se muestran las instrucciones
+    aviso.prompt();
+    const { outcome } = await aviso.userChoice;
+    aviso = null;                                         // el evento solo sirve una vez
+    if (outcome === "accepted") ocultarTodo(); else verCaja(false);
+  }
+  document.getElementById("instalarBtn").onclick = instalar;
+  pie.onclick = instalar;
+  document.getElementById("instalarCerrar").onclick = () => {
+    verCaja(false);
+    try { localStorage.setItem(NO_MOSTRAR, String(Date.now())); } catch (e) {}
+  };
+  // iPhone/iPad no tienen beforeinstallprompt: se explica cómo añadirla a mano
+  if (esIOS && !instalada()) ofrecer(true);
+})();
+</script>
 
 <!-- Chart.js para las gráficas de Estadísticas -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" defer></script>
@@ -819,18 +911,65 @@ function avatar(p) {
 
 // ── Sesión ───────────────────────────────────────────────────
 
+// La sesión la guarda Firebase Auth en IndexedDB (persistencia local por defecto en la
+// web), así que sigue iniciada al cerrar y volver a abrir la app instalada, también sin red.
 onAuthStateChanged(auth, async user => {
   if (registrando) return; // el formulario de registro se encarga
   salirDeDatos();
   if (!user) return mostrarAcceso("login");
+  // Si hay copia local de esta cuenta, se entra al momento (y sin conexión) con los
+  // últimos datos guardados; los listeners de entrar() los ponen al día en cuanto hay red
+  const copia = leerCopia(user.uid);
+  if (copia) return entrar(copia.persona, copia);
   try {
-    const snap = await get(ref(db, `usuarios/${user.uid}/persona`));
+    const snap = await conLimite(get(ref(db, `usuarios/${user.uid}/persona`)), 10000);
     snap.exists() ? entrar(snap.val()) : mostrarAcceso("vincular");
   } catch (e) {
     console.error(e);
-    mostrarAcceso("login", "No se pudo conectar con la base de datos");
+    mostrarAcceso("login", navigator.onLine ? "No se pudo conectar con la base de datos" : "Sin conexión: conéctate a internet para entrar la primera vez");
   }
 });
+
+function conLimite(promesa, ms) {
+  return Promise.race([promesa, new Promise((_, mal) => setTimeout(() => mal(new Error("Tiempo de espera agotado")), ms))]);
+}
+
+// ── Copia local (para abrir la app sin conexión) ─────────────
+// Realtime Database no tiene persistencia en disco en el SDK web (solo en Android/iOS
+// nativos), así que guardamos aquí la última versión de los datos. Las faltas apuntadas
+// sin red las guarda el SDK en memoria y las envía solo al volver la conexión.
+const COPIA = "faltas2dam_copia";
+let copiaT;
+function leerCopia(uid) {
+  try {
+    const c = JSON.parse(localStorage.getItem(COPIA));
+    return c && c.uid === uid && PERSONAS.includes(c.persona) ? c : null;
+  } catch (e) { return null; }
+}
+function guardarCopia() {
+  clearTimeout(copiaT);
+  copiaT = setTimeout(() => {
+    if (!yo || !auth.currentUser) return;
+    try { localStorage.setItem(COPIA, JSON.stringify({ uid: auth.currentUser.uid, persona: yo, datos, registro, perfiles })); }
+    catch (e) { console.warn("No se pudo guardar la copia local", e); }
+  }, 500);
+}
+function borrarCopia() {
+  clearTimeout(copiaT);
+  try { localStorage.removeItem(COPIA); } catch (e) {}
+}
+
+// ── Aviso "Sin conexión" ─────────────────────────────────────
+let bdConectada = true, bdConectadaAlgunaVez = false;
+function pintarConexion() { $("offline").hidden = navigator.onLine && bdConectada; }
+addEventListener("online", pintarConexion);
+addEventListener("offline", pintarConexion);
+onValue(ref(db, ".info/connected"), snap => {
+  if (snap.val()) { bdConectada = true; bdConectadaAlgunaVez = true; }
+  else if (bdConectadaAlgunaVez) bdConectada = false;   // al arrancar aún no ha conectado: no es un corte
+  pintarConexion();
+});
+pintarConexion();
 
 // Vincula la cuenta con la persona a la que pertenece el código.
 // Las reglas solo aceptan la escritura si el código es el de esa persona y
@@ -848,9 +987,14 @@ async function vincular(uid, codigo) {
   return null;
 }
 
-function entrar(p) {
+function entrar(p, copia = null) {
   yo = p; actual = p;
   $("auth").hidden = true;
+  if (copia) {
+    datos = { faltas: normalizar(copia.datos?.faltas), retrasos: normalizar(copia.datos?.retrasos) };
+    registro = copia.registro || {};
+    perfiles = copia.perfiles || {};
+  }
   const escuchar = (ruta, cb) => desuscribir.push(onValue(ref(db, ruta), cb, err => {
     console.error(err);
     toast("No se pudo leer la base de datos", true);
@@ -865,15 +1009,17 @@ function entrar(p) {
     datos[tipo] = nuevos;
     cargado.add(tipo);
     render();
+    guardarCopia();
     if (tipo === "faltas") programarMigracion();
   }));
   escuchar("registro", snap => {
     registro = snap.val() || {};
     cargado.add("registro");
     render();
+    guardarCopia();
     programarMigracion();
   });
-  escuchar("perfiles", snap => { perfiles = snap.val() || {}; render(); });
+  escuchar("perfiles", snap => { perfiles = snap.val() || {}; render(); guardarCopia(); });
   escuchar(".info/connected", snap => {
     snap.val() ? setSync("on", "En directo") : setSync("", "Reconectando…");
   });
@@ -990,8 +1136,9 @@ $("fVincular").onsubmit = async ev => {
   finally { ocupado(ev.target, false); }
 };
 
-$("salirVincular").onclick = () => signOut(auth);
-$("salir").onclick = () => signOut(auth);
+// Al cerrar sesión se borra la copia local para no dejar datos del grupo en el dispositivo
+$("salirVincular").onclick = () => { borrarCopia(); signOut(auth); };
+$("salir").onclick = () => { borrarCopia(); signOut(auth); };
 
 // ── Perfil ───────────────────────────────────────────────────
 
@@ -1398,29 +1545,37 @@ async function cambiar(tipo, m, d) {
   if (!yo || actual !== yo) return; // solo tus propias faltas (las reglas también lo impiden)
   if (d < 0 && datos[tipo][yo][m.id] === 0) return;
   ultimo = { tipo, id: m.id };
-  let ahora;
-  try {
-    if (tipo === "retrasos") {
-      const res = await runTransaction(ref(db, `${tipo}/${yo}/${m.id}`), v => Math.max(0, (v || 0) + d));
-      ahora = res.snapshot.val() || 0;
+  const ahora = datos[tipo][yo][m.id] + d;
+  let escritura;
+  if (tipo === "retrasos") {
+    escritura = runTransaction(ref(db, `${tipo}/${yo}/${m.id}`), v => Math.max(0, (v || 0) + d));
+  } else {
+    const cambios = { [`faltas/${yo}/${m.id}`]: ahora };
+    const mios = { ...(registro[yo] || {}) };
+    if (d > 0) {
+      const id = push(ref(db, `registro/${yo}`)).key;
+      cambios[`registro/${yo}/${id}`] = mios[id] = { modulo: m.id, fecha: fechaFalta() };
     } else {
-      ahora = datos.faltas[yo][m.id] + d;
-      const cambios = { [`faltas/${yo}/${m.id}`]: ahora };
-      if (d > 0) cambios[`registro/${yo}/${push(ref(db, `registro/${yo}`)).key}`] = { modulo: m.id, fecha: fechaFalta() };
-      else {
-        const ult = entradas(yo, m.id)[0];   // se quita la falta más reciente de ese módulo
-        if (ult) cambios[`registro/${yo}/${ult[0]}`] = null;
-      }
-      await update(ref(db), cambios);
+      const ult = entradas(yo, m.id)[0];   // se quita la falta más reciente de ese módulo
+      if (ult) { cambios[`registro/${yo}/${ult[0]}`] = null; delete mios[ult[0]]; }
     }
-  } catch (e) {
-    console.error(e);
-    return toast("No se pudo guardar el cambio", true);
+    registro = { ...registro, [yo]: mios };
+    escritura = update(ref(db), cambios);
   }
+  // Se pinta ya, sin esperar a Firebase: sin conexión la escritura queda pendiente hasta que
+  // vuelve la red y Firebase no avisa de cambios en datos que aún no ha podido descargar.
+  // (No se guarda en la copia local hasta que Firebase lo confirma por los listeners.)
+  datos[tipo][yo][m.id] = ahora;
+  render();
   if (tipo === "faltas" && d > 0) {
     if (ahora === m.max) toast(`Límite alcanzado en ${m.nombre}`, true);
     else if (ahora > m.max) toast(`Has perdido la evaluación continua en ${m.nombre}`, true);
     else if (ahora === Math.ceil(m.max * .75)) toast(`${m.nombre} se acerca al límite`);
+  }
+  try { await escritura; }
+  catch (e) {
+    console.error(e);
+    toast("No se pudo guardar el cambio", true);
   }
 }
 

@@ -78,6 +78,38 @@ Después podrá registrarse otra vez con el mismo código.
 En la pantalla de inicio de sesión, *¿Has olvidado la contraseña?* envía un correo
 de Firebase para cambiarla.
 
+## App instalable (PWA)
+
+La web se puede instalar en Android, iPhone y ordenador:
+
+- `manifest.json`: nombre, colores e iconos de la app (todas las rutas son relativas,
+  porque en GitHub Pages la web vive en `usuario.github.io/ProyectoFaltaPa/`).
+- `sw.js`: service worker. Solo maneja peticiones GET de la propia web, con estrategia
+  *network-first* (si hay red carga lo último y actualiza la caché; si no, usa la
+  caché). Firebase, Chart.js y las fuentes van siempre directos a la red.
+- Iconos en `img/`: `icon-192.png`, `icon-512.png`, `icon-maskable-192.png`,
+  `icon-maskable-512.png` y `apple-touch-icon.png`.
+- Botón **Instalar app** (Chrome/Edge en Android y ordenador) y, en iPhone, un aviso
+  con los pasos (Compartir → Añadir a pantalla de inicio).
+
+### Sin conexión
+
+Realtime Database no tiene persistencia en disco en el SDK web, así que:
+
+- La app guarda una copia local de los últimos datos para poder abrirse sin red.
+- Las faltas apuntadas sin conexión las envía Firebase al volver la red, **siempre que
+  la app siga abierta**. Mientras tanto se muestra el aviso "Sin conexión".
+- La sesión la guarda Firebase en el navegador y sigue iniciada al reabrir la app. En
+  iPhone la app instalada no comparte datos con Safari: hay que iniciar sesión una vez
+  dentro de la app.
+
+### Cuándo subir la versión de la caché
+
+Como la estrategia es *network-first*, los cambios en `index.html`, las imágenes, etc.
+llegan solos en cuanto hay red. Sube `CACHE` en `sw.js` (`faltas-v1` → `faltas-v2`…)
+cuando añadas, quites o renombres archivos de la lista `ESTATICOS`, o cuando quieras
+borrar por completo la caché vieja de todos los dispositivos.
+
 ## Publicar la web
 
 Al ser un único HTML se puede subir a cualquier hosting estático: GitHub Pages,

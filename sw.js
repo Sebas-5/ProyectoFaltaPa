@@ -1,7 +1,7 @@
 // Service worker de Faltas 2DAM
 //
 // · Solo maneja peticiones GET de esta web (mismo origen y dentro de su carpeta).
-//   Firebase (base de datos y login), Chart.js, las fuentes y cualquier otro
+//   Firebase (base de datos y login), las fuentes y cualquier otro
 //   origen van directos a la red: aquí ni se tocan.
 // · Estrategia "network-first": si hay red se descarga lo último y se guarda en
 //   la caché; si no hay red, se sirve lo que haya en la caché.

@@ -21,13 +21,11 @@ al momento sin recargar.
   pasado (según el horario) se calcula tu ritmo y se estima cuándo te quedarías sin
   margen en cada módulo (por ejemplo, "a este ritmo te quedas sin margen en Desarrollo de
   interfaces a mediados de enero") o con cuántas faltas acabarías el curso.
-- **Estadísticas** (con [Chart.js](https://www.chartjs.org/) desde cdnjs): resumen
-  (faltas, límite consumido de media, módulo más comprometido y racha de días sin
-  faltar), faltas por mes de cada miembro, faltas por módulo frente al límite, faltas
-  por día de la semana, comparativa del grupo y un mapa de calor día a día. Se pueden
-  filtrar por persona y por periodo (este mes, último trimestre, todo el curso) y se
-  actualizan en tiempo real.
-
+- **Estadísticas**: tus faltas totales, el módulo más comprometido (con el % del límite
+  usado) y los días seguidos sin faltar; una gráfica de barras con las faltas de cada
+  mes del curso y la lista "Lo que te queda" con el margen de cada módulo (naranja si
+  queda el 25 % o menos, rojo si ya estás en el límite). Se puede ver a cualquier
+  miembro del grupo y se actualiza en tiempo real.
 - **Muro**: cada falta apuntada aparece en el muro del grupo ("Joaquín ha faltado a
   Desarrollo de interfaces · hace 5 min"). Se puede reaccionar con 😂 💀 👀 🫡 😤 (una vez
   por emoji y persona; al pulsar el contador se ve quién) y comentar (máximo 200
@@ -95,7 +93,7 @@ La web se puede instalar en Android, iPhone y ordenador:
   porque en GitHub Pages la web vive en `usuario.github.io/ProyectoFaltaPa/`).
 - `sw.js`: service worker. Solo maneja peticiones GET de la propia web, con estrategia
   *network-first* (si hay red carga lo último y actualiza la caché; si no, usa la
-  caché). Firebase, Chart.js y las fuentes van siempre directos a la red.
+  caché). Firebase y las fuentes van siempre directos a la red.
 - Iconos en `img/`: `icon-192.png`, `icon-512.png`, `icon-maskable-192.png`,
   `icon-maskable-512.png` y `apple-touch-icon.png`.
 - Botón **Instalar app** (Chrome/Edge en Android y ordenador) y, en iPhone, un aviso

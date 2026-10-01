@@ -219,7 +219,7 @@
   .mod .proy.justo { color: var(--warn); }
 
   /* ESTADÍSTICAS */
-  .filtros { display: flex; flex-wrap: wrap; gap: 12px 18px; justify-content: center; align-items: center; margin-bottom: 26px; }
+  .filtros { display: flex; justify-content: center; margin-bottom: 24px; }
   .filtros label { display: flex; align-items: center; gap: 10px; font-size: .8rem; color: var(--muted); }
   .filtros select {
     background: var(--bg-deep); color: var(--text); border: 1.5px solid var(--border); border-radius: 999px;
@@ -228,45 +228,32 @@
     background-position: calc(100% - 18px) 55%, calc(100% - 13px) 55%; background-size: 5px 5px; background-repeat: no-repeat;
   }
   .filtros select:focus { outline: none; border-color: var(--cyan); }
-  .seg { display: inline-grid; grid-auto-flow: column; grid-auto-columns: 1fr; border: 1.5px solid var(--border); border-radius: 999px; padding: 3px; }
-  .seg button { background: none; border: none; border-radius: 999px; padding: 7px 16px; color: var(--muted); font: inherit; font-size: .8rem; font-weight: 500; cursor: pointer; white-space: nowrap; }
-  .seg button:hover { color: var(--text); }
-  .seg button.on { background: var(--cyan); color: #fff; }
-
-  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 16px; }
+  .kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 16px; }
   .kpi { border: 1.5px solid var(--border); border-radius: 16px; padding: 20px; background: rgba(19,26,40,.35); min-width: 0; }
   .kpi span { display: block; font-size: .72rem; color: var(--muted); }
-  .kpi b { display: block; font-size: 2rem; font-weight: 600; line-height: 1.15; margin: 6px 0 4px; }
-  .kpi b.txt { font-size: 1.05rem; font-weight: 500; line-height: 1.35; margin: 8px 0 6px; }
-  .kpi small { display: block; font-size: .72rem; color: var(--muted); line-height: 1.45; }
-
-  .charts { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-  .chart { border: 1.5px solid var(--border); border-radius: 16px; padding: 20px 18px 18px; background: rgba(19,26,40,.35); min-width: 0; }
-  .chart.wide { grid-column: 1 / -1; }
-  .chart h3 { font-weight: 500; font-size: 1rem; margin: 0 0 2px; }
-  .chart .cap { color: var(--muted); font-size: .75rem; margin: 0 0 14px; line-height: 1.5; }
-  .cv { position: relative; height: 260px; width: 100%; }
-  .cv.alto { height: 440px; }
+  .kpi b { display: block; font-size: 2rem; font-weight: 600; line-height: 1.15; margin-top: 6px; }
+  .kpi b.txt { font-size: 1.05rem; font-weight: 500; line-height: 1.35; margin-top: 8px; }
+  .st-cols { display: grid; grid-template-columns: 1.3fr 1fr; gap: 16px; align-items: start; }
+  .st-caja { border: 1.5px solid var(--border); border-radius: 16px; padding: 20px; background: rgba(19,26,40,.35); min-width: 0; }
+  .st-caja h3 { font-weight: 500; font-size: 1rem; margin: 0 0 16px; }
   .vacio { text-align: center; color: var(--muted); font-size: .85rem; padding: 48px 16px; border: 1px dashed var(--border); border-radius: 12px; margin: 0; }
-
-  /* Mapa de calor */
-  .heat { display: grid; gap: 3px; max-width: 680px; margin: 0 auto; }
-  .heat .mes { grid-row: 1; font-size: .62rem; color: var(--muted); white-space: nowrap; overflow: visible; align-self: end; }
-  .heat .dl { grid-column: 1; font-size: .6rem; color: var(--muted); align-self: center; }
-  .heat i { aspect-ratio: 1; border-radius: 3px; background: rgba(243,246,250,.07); cursor: pointer; }
-  .heat i.n1 { background: #17668a; }
-  .heat i.n2 { background: #1f93c2; }
-  .heat i.n3 { background: #4cc3ec; }
-  .heat i.n4 { background: #9fe0f7; }
-  .heat i.libre { background: transparent; border: 1px dashed rgba(243,246,250,.14); cursor: default; }
-  .heat i.fut { background: transparent; border: 1px solid rgba(243,246,250,.08); cursor: default; }
-  .heat i.hoy { outline: 1.5px solid var(--text); outline-offset: 1px; }
-  .heat i.sel { outline: 2px solid var(--cyan); outline-offset: 1px; }
-  .heat-pie { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 16px; align-items: center; max-width: 680px; margin: 12px auto 0; font-size: .72rem; color: var(--muted); }
-  .heat-ley { display: flex; align-items: center; gap: 4px; }
-  .heat-ley i { width: 11px; height: 11px; border-radius: 3px; display: inline-block; background: rgba(243,246,250,.07); }
-  .heat-ley i.libre { background: transparent; border: 1px dashed rgba(243,246,250,.25); margin-left: 8px; }
-  .heat-info { min-height: 1.4em; }
+  /* Gráfica de barras por mes (HTML y CSS) */
+  .barras { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 10px; align-items: end; height: 210px; }
+  .barra { display: grid; grid-template-rows: auto 1fr auto; height: 100%; text-align: center; min-width: 0; }
+  .barra b { font-size: .8rem; font-weight: 500; margin-bottom: 4px; }
+  .barra .col { display: flex; align-items: flex-end; border-bottom: 1px solid var(--border); }
+  .barra .col i { display: block; width: 100%; max-width: 46px; margin: 0 auto; min-height: 2px; border-radius: 4px 4px 0 0; background: var(--cyan); transition: height .3s; }
+  .barra.cero b { color: var(--muted); }
+  .barra span { font-size: .72rem; color: var(--muted); margin-top: 6px; }
+  /* Lista "Lo que te queda" */
+  .margen { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+  .margen li { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 9px 12px; border-radius: 10px; background: rgba(243,246,250,.04); border-left: 3px solid var(--border); font-size: .85rem; }
+  .margen li span { min-width: 0; }
+  .margen li b { font-weight: 500; white-space: nowrap; }
+  .margen li.justo { border-left-color: var(--warn); }
+  .margen li.justo b { color: var(--warn); }
+  .margen li.sin { border-left-color: var(--bad); }
+  .margen li.sin b { color: var(--bad); }
 
   /* MURO */
   .muro-wrap { max-width: 720px; margin: 0 auto; }
@@ -481,7 +468,7 @@
   .ro .link { font-size: .8rem; margin-left: 6px; }
 
   @media (max-width: 900px) {
-    .kpis { grid-template-columns: repeat(2, 1fr); }
+    .st-cols { grid-template-columns: 1fr; }
     .hero { grid-template-columns: 1fr; padding-top: 30px; }
     .ranking { grid-template-columns: repeat(2, 1fr); }
     .grid, .proy-list { grid-template-columns: repeat(2, 1fr); }
@@ -498,16 +485,12 @@
     .post .av { width: 34px; height: 34px; font-size: 1rem; }
     .post-form .cuenta { display: none; }
     .proy-top { padding: 18px; }
-    .charts { grid-template-columns: 1fr; }
-    .filtros, .filtros label, .seg { width: 100%; }
-    .filtros select { flex: 1; }
-    .seg button { padding: 7px 6px; font-size: .74rem; }
-    .kpis { gap: 10px; }
+    .kpis { grid-template-columns: 1fr 1fr; gap: 10px; }
+    .kpis .kpi:last-child { grid-column: 1 / -1; }
     .kpi { padding: 14px; }
     .kpi b { font-size: 1.6rem; }
-    .chart { padding: 16px 12px 14px; }
-    .cv, .cv.par { height: 240px; }
-    .heat { gap: 2px; }
+    .st-caja { padding: 16px 14px; }
+    .barras { gap: 6px; height: 180px; }
     .av.grande { width: 160px; height: 160px; font-size: 4rem; }
     .stats { padding: 20px; }
     .stats b { font-size: 1.6rem; }
@@ -588,52 +571,22 @@
   <section id="estadisticas">
     <div class="head">
       <div class="over">Estadísticas</div>
-      <h2>Las faltas en números</h2>
-      <p>Se calculan con las faltas de todo el grupo y se actualizan en tiempo real.</p>
+      <h2>De un vistazo</h2>
+      <p>Se actualizan en tiempo real.</p>
     </div>
     <div class="filtros">
-      <label>Persona <select id="stPersona" aria-label="Persona para las gráficas personales"></select></label>
-      <div class="seg" id="stPeriodo" role="group" aria-label="Periodo">
-        <button type="button" data-periodo="mes">Este mes</button>
-        <button type="button" data-periodo="trimestre">Último trimestre</button>
-        <button type="button" data-periodo="curso" class="on">Todo el curso</button>
-      </div>
+      <label>Persona <select id="stPersona" aria-label="Persona de las estadísticas"></select></label>
     </div>
     <div class="kpis" id="stKpis"></div>
-    <p class="vacio" id="stSinGraficas" hidden>No se han podido cargar las gráficas. Comprueba la conexión y recarga la página.</p>
-    <div class="charts">
-      <div class="chart wide">
+    <div class="st-cols">
+      <div class="st-caja">
         <h3 id="stMesTit">Faltas por mes</h3>
-        <p class="cap" id="stMesCap">Todo el grupo</p>
-        <div class="cv"><canvas id="cMes" role="img" aria-label="Faltas por mes de cada miembro del grupo"></canvas></div>
-        <p class="vacio" hidden></p>
+        <div class="barras" id="stBarras" role="img"></div>
+        <p class="vacio" id="stSinFaltas" hidden>Sin faltas todavía. 🎉</p>
       </div>
-      <div class="chart">
-        <h3>Faltas por módulo</h3>
-        <p class="cap" id="stModCap"></p>
-        <div class="cv alto"><canvas id="cMod" role="img" aria-label="Faltas por módulo frente al límite"></canvas></div>
-        <p class="vacio" hidden></p>
-      </div>
-      <div class="chart">
-        <h3>Faltas por día de la semana</h3>
-        <p class="cap" id="stDiaCap"></p>
-        <div class="cv alto par"><canvas id="cDia" role="img" aria-label="Faltas por día de la semana"></canvas></div>
-        <p class="vacio" hidden></p>
-      </div>
-      <div class="chart wide">
-        <h3>Comparativa del grupo</h3>
-        <p class="cap" id="stGrupoCap"></p>
-        <div class="cv"><canvas id="cGrupo" role="img" aria-label="Faltas y retrasos de cada miembro del grupo"></canvas></div>
-        <p class="vacio" hidden></p>
-      </div>
-      <div class="chart wide">
-        <h3>Mapa de faltas</h3>
-        <p class="cap" id="stHeatCap"></p>
-        <div class="heat" id="stHeat"></div>
-        <div class="heat-pie">
-          <span class="heat-info" id="stHeatInfo">Pasa el ratón o toca un día para ver el detalle.</span>
-          <span class="heat-ley">Menos <i></i><i class="n1" style="background:#17668a"></i><i style="background:#1f93c2"></i><i style="background:#4cc3ec"></i><i style="background:#9fe0f7"></i> Más <i class="libre"></i> Sin clase</span>
-        </div>
+      <div class="st-caja">
+        <h3>Lo que te queda</h3>
+        <ul class="margen" id="stMargen"></ul>
       </div>
     </div>
   </section>
@@ -813,8 +766,6 @@ if ("serviceWorker" in navigator) {
 })();
 </script>
 
-<!-- Chart.js para las gráficas de Estadísticas -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" defer></script>
 <script type="module">
 // ─────────────────────────────────────────────────────────────
 //  CONFIGURACIÓN DE FIREBASE
@@ -1872,35 +1823,9 @@ function limpiarMuro() {
 
 // ── Estadísticas ─────────────────────────────────────────────
 
-// Cada miembro siempre con el mismo color (paleta validada para el fondo oscuro)
-// y con su propio símbolo en las líneas, para no depender solo del color
-const COLOR = { Sebastian: "#2a9fd0", "Matías": "#d95926", Ian: "#9085e9", "Joaquín": "#2f9e2f" };
-const SIMBOLO = { Sebastian: "circle", "Matías": "rect", Ian: "triangle", "Joaquín": "rectRot" };
-const DIAS = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
-const TINTA = "rgba(243,246,250,.6)", REJILLA = "rgba(243,246,250,.08)";
+let stPersona = null;   // persona de las estadísticas (por defecto, tú)
 
-let stPersona = null;           // persona de las gráficas personales (por defecto, tú)
-let stPeriodo = "curso";        // mes | trimestre | curso
-const graficas = {};
-
-function isoUTC(d) { return d.toISOString().slice(0, 10); }
 function fechaUTC(iso) { return new Date(iso + "T00:00:00Z"); }
-function mesCorto(iso) { return fechaUTC(iso).toLocaleDateString("es-ES", { month: "short", timeZone: "UTC" }).replace(".", ""); }
-function diaLargo(iso) { return fechaUTC(iso).toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" }); }
-
-// [desde, hasta] del periodo elegido (ambos incluidos)
-function rangoPeriodo() {
-  const hoy = hoyISO(), [a, m] = hoy.split("-").map(Number);
-  if (stPeriodo === "mes") return [hoy.slice(0, 8) + "01", hoy];
-  if (stPeriodo === "trimestre") return [isoUTC(new Date(Date.UTC(a, m - 3, 1))), hoy];
-  return [CALENDARIO.inicio, hoy];
-}
-const TXT_PERIODO = { mes: "este mes", trimestre: "en el último trimestre", curso: "en todo el curso" };
-
-function enPeriodo(lista) {
-  const [desde, hasta] = rangoPeriodo();
-  return lista.filter(e => e.fecha >= desde && e.fecha <= hasta);
-}
 
 // Días de clase seguidos sin faltar, contando hacia atrás desde hoy
 function racha(p) {
@@ -1908,238 +1833,53 @@ function racha(p) {
   const pasados = LECTIVOS.filter(d => d.fecha <= hoyISO());
   let n = 0;
   for (let i = pasados.length - 1; i >= 0 && !conFalta.has(pasados[i].fecha); i--) n++;
-  return { n, desde: n ? pasados[pasados.length - n].fecha : null, total: pasados.length };
+  return n;
 }
-
-// Crea la gráfica la primera vez y después solo actualiza sus datos (tiempo real sin parpadeos)
-function grafica(id, tipo, data, options, hayDatos, mensaje) {
-  const canvas = $(id), caja = canvas.parentElement, vacio = caja.nextElementSibling;
-  caja.hidden = !hayDatos;
-  vacio.hidden = hayDatos;
-  vacio.textContent = mensaje;
-  if (!hayDatos) return;
-  if (graficas[id]) {
-    graficas[id].data = data;
-    graficas[id].options = options;
-    graficas[id].update();
-  } else {
-    graficas[id] = new Chart(canvas, { type: tipo, data, options });
-  }
-}
-
-function configurarChart() {
-  if (configurarChart.hecho) return;
-  configurarChart.hecho = true;
-  Chart.defaults.font.family = '"Poppins", system-ui, sans-serif';
-  Chart.defaults.font.size = 11;
-  Chart.defaults.color = TINTA;
-  Chart.defaults.borderColor = REJILLA;
-  Chart.defaults.animation.duration = 350;
-  Object.assign(Chart.defaults.plugins.tooltip, {
-    backgroundColor: "#131a28", borderColor: "rgba(34,184,230,.6)", borderWidth: 1, padding: 10,
-    titleColor: "#f3f6fa", bodyColor: "#f3f6fa", cornerRadius: 10, boxPadding: 4, usePointStyle: true
-  });
-  Object.assign(Chart.defaults.plugins.legend.labels, { usePointStyle: true, boxWidth: 8, boxHeight: 8, padding: 14, color: "#f3f6fa" });
-}
-
-// Parte un nombre largo en líneas cortas para los ejes
-function partir(txt, max = 18) {
-  const lineas = [""];
-  txt.split(" ").forEach(w => {
-    if ((lineas.at(-1) + " " + w).trim().length > max && lineas.at(-1)) lineas.push(w);
-    else lineas[lineas.length - 1] = (lineas.at(-1) + " " + w).trim();
-  });
-  return lineas;
-}
-
-const ejeEntero = { beginAtZero: true, ticks: { precision: 0 }, grid: { color: REJILLA }, border: { display: false } };
 
 function renderEstadisticas() {
   if (!stPersona || !PERSONAS.includes(stPersona)) stPersona = yo;
-  const p = stPersona, tu = p === yo, quien = nombre(p);
-  const [desde, hasta] = rangoPeriodo();
+  const p = stPersona, tu = p === yo;
 
   // Selector de persona (se rehace por si alguien cambia su nombre visible)
   const sel = $("stPersona");
   sel.innerHTML = "";
   PERSONAS.forEach(x => sel.add(new Option(x === yo ? `${nombre(x)} (tú)` : nombre(x), x, false, x === p)));
-  document.querySelectorAll("#stPeriodo button").forEach(b => b.classList.toggle("on", b.dataset.periodo === stPeriodo));
 
-  // 1. Resumen
-  const mias = enPeriodo(eventos(p));
-  const pcts = MODULOS.map(m => datos.faltas[p][m.id] / m.max);
-  const media = Math.round(pcts.reduce((a, b) => a + b, 0) / MODULOS.length * 100);
-  const st = stats(p), r = racha(p);
-  const peorTxt = st.peor ? esc(st.peor.nombre) : "Ninguno";
-  const peorSub = st.peor ? `${datos.faltas[p][st.peor.id]} de ${st.peor.max} faltas (${Math.round(st.peorPct * 100)}%)` : "Sin faltas en ningún módulo";
-  const rachaSub = !r.total ? "El curso todavía no ha empezado"
-    : r.n === r.total ? "Sin faltar ni un día desde que empezó el curso"
-    : r.n ? `Días de clase seguidos sin faltar, desde el ${fechaUTC(r.desde).toLocaleDateString("es-ES", { day: "numeric", month: "long", timeZone: "UTC" })}`
-    : `${tu ? "Has" : "Ha"} faltado el último día de clase`;
+  // 1. Tres números
+  const st = stats(p), dias = racha(p);
   $("stKpis").innerHTML = `
-    <div class="kpi"><span>${tu ? "Mis faltas" : "Faltas de " + esc(quien)}</span><b>${mias.length}</b><small>${TXT_PERIODO[stPeriodo]}</small></div>
-    <div class="kpi"><span>Límite consumido de media</span><b>${media}%</b><small>Media de los ${MODULOS.length} módulos en el curso</small></div>
-    <div class="kpi"><span>Módulo más comprometido</span><b class="txt">${peorTxt}</b><small>${peorSub}</small></div>
-    <div class="kpi"><span>Racha actual</span><b>${r.n} ${r.n === 1 ? "día" : "días"}</b><small>${rachaSub}</small></div>`;
+    <div class="kpi"><span>${tu ? "Mis faltas totales" : "Faltas totales de " + esc(nombre(p))}</span><b>${st.total}</b></div>
+    <div class="kpi"><span>Módulo más comprometido</span><b class="txt">${st.peor ? `${esc(st.peor.nombre)} · ${Math.round(st.peorPct * 100)}%` : "Ninguno"}</b></div>
+    <div class="kpi"><span>Días seguidos sin faltar</span><b>${dias}</b></div>`;
 
-  renderMapa(p);
-
-  const conGraficas = typeof window.Chart !== "undefined";
-  $("stSinGraficas").hidden = conGraficas;
-  document.querySelectorAll("#estadisticas .chart .cv").forEach(c => { if (!conGraficas) c.hidden = true; });
-  if (!conGraficas) return;
-  configurarChart();
-
-  // 2. Faltas por mes (o por semana si el periodo es este mes), una línea por miembro
-  let cubos = [];
-  if (stPeriodo === "mes") {
-    for (let d = fechaUTC(desde); isoUTC(d) <= hasta; d.setUTCDate(d.getUTCDate() + 1)) {
-      const iso = isoUTC(d);
-      if (iso === desde || d.getUTCDay() === 1) cubos.push({ desde: iso, etiqueta: `${d.getUTCDate()} ${mesCorto(iso)}` });
-    }
-    $("stMesTit").textContent = "Faltas por semana";
-  } else {
-    for (let d = fechaUTC(desde > CALENDARIO.inicio ? desde : CALENDARIO.inicio.slice(0, 8) + "01"); isoUTC(d) <= hasta; d.setUTCMonth(d.getUTCMonth() + 1)) {
-      cubos.push({ desde: isoUTC(d), etiqueta: mesCorto(isoUTC(d)) });
-    }
-    $("stMesTit").textContent = "Faltas por mes";
+  // 2. Faltas por mes del curso (barras hechas con HTML y CSS)
+  const meses = [];
+  const ultimo = (hoyISO() < LECTIVOS.at(-1).fecha ? hoyISO() : LECTIVOS.at(-1).fecha).slice(0, 7);
+  for (let d = fechaUTC(CALENDARIO.inicio.slice(0, 8) + "01"); d.toISOString().slice(0, 7) <= ultimo; d.setUTCMonth(d.getUTCMonth() + 1)) {
+    meses.push({ clave: d.toISOString().slice(0, 7), nombre: d.toLocaleDateString("es-ES", { month: "short", timeZone: "UTC" }).replace(".", ""), n: 0 });
   }
-  const cubo = f => { let i = -1; cubos.forEach((c, k) => { if (f >= c.desde) i = k; }); return i; };
-  const lineas = PERSONAS.map(x => {
-    const v = cubos.map(() => 0);
-    enPeriodo(eventos(x)).forEach(e => { const i = cubo(e.fecha); if (i >= 0) v[i]++; });
-    return {
-      label: nombre(x), data: v, borderColor: COLOR[x], backgroundColor: COLOR[x],
-      pointStyle: SIMBOLO[x], pointRadius: 4, pointHoverRadius: 6, borderWidth: 2, cubicInterpolationMode: "monotone"
-    };
-  });
-  const hayMes = lineas.some(l => l.data.some(Boolean));
-  $("stMesCap").textContent = `Todo el grupo · ${TXT_PERIODO[stPeriodo]}`;
-  grafica("cMes", "line", { labels: cubos.map(c => c.etiqueta), datasets: lineas }, {
-    responsive: true, maintainAspectRatio: false,
-    interaction: { mode: "index", intersect: false },
-    plugins: { legend: { position: "bottom" } },
-    scales: { x: { grid: { display: false } }, y: ejeEntero }
-  }, hayMes, `Nadie del grupo tiene faltas ${TXT_PERIODO[stPeriodo]}. 🎉`);
+  eventos(p).forEach(e => { const m = meses.find(m => m.clave === e.fecha.slice(0, 7)); if (m) m.n++; });
+  const max = Math.max(1, ...meses.map(m => m.n));
+  $("stMesTit").textContent = tu ? "Mis faltas por mes" : `Faltas de ${nombre(p)} por mes`;
+  $("stBarras").hidden = st.total === 0;
+  $("stSinFaltas").hidden = st.total > 0;
+  $("stBarras").setAttribute("aria-label", meses.map(m => `${m.nombre}: ${m.n}`).join(", "));
+  $("stBarras").innerHTML = meses.map(m => `
+    <div class="barra${m.n ? "" : " cero"}" title="${m.nombre}: ${m.n} ${m.n === 1 ? "falta" : "faltas"}">
+      <b>${m.n}</b><div class="col"><i style="height:${m.n / max * 100}%"></i></div><span>${m.nombre}</span>
+    </div>`).join("");
 
-  // 3. Faltas por módulo frente al límite (persona elegida)
-  const porMod = MODULOS.map(m => mias.filter(e => e.modulo === m.id).length);
-  $("stModCap").textContent = `${tu ? "Mis faltas" : "Faltas de " + quien} ${TXT_PERIODO[stPeriodo]} frente al límite de cada módulo`;
-  const estrecho = window.innerWidth < 560;
-  grafica("cMod", "bar", {
-    labels: MODULOS.map(m => partir(m.nombre, estrecho ? 16 : 22)),
-    datasets: [
-      { label: "Faltas", data: porMod, backgroundColor: COLOR[p], borderRadius: 4, barPercentage: .55, categoryPercentage: .9, order: 1 },
-      { label: "Límite", data: MODULOS.map(m => m.max), backgroundColor: "rgba(243,246,250,.12)", borderRadius: 4, barPercentage: .9, categoryPercentage: .9, order: 2 }
-    ]
-  }, {
-    indexAxis: "y", responsive: true, maintainAspectRatio: false,
-    datasets: { bar: { grouped: false } },
-    plugins: {
-      legend: { position: "bottom", labels: { usePointStyle: false, boxWidth: 12, boxHeight: 12 } },
-      tooltip: { callbacks: {
-        title: items => MODULOS[items[0].dataIndex].nombre,
-        label: c => c.datasetIndex === 0 ? ` ${c.raw} faltas de ${MODULOS[c.dataIndex].max} (${Math.round(c.raw / MODULOS[c.dataIndex].max * 100)}%)` : ` Límite: ${c.raw}`
-      } }
-    },
-    scales: { x: ejeEntero, y: { grid: { display: false }, ticks: { autoSkip: false, font: { size: estrecho ? 10 : 11 } } } }
-  }, mias.length > 0, `${tu ? "No tienes" : quien + " no tiene"} faltas ${TXT_PERIODO[stPeriodo]}. 🎉`);
-
-  // 4. Faltas por día de la semana (persona elegida)
-  const porDia = [0, 0, 0, 0, 0];
-  mias.forEach(e => { const d = fechaUTC(e.fecha).getUTCDay(); if (d >= 1 && d <= 5) porDia[d - 1]++; });
-  const maxDia = Math.max(...porDia);
-  $("stDiaCap").textContent = maxDia
-    ? `${tu ? "Faltas más los" : quien + " falta más los"} ${DIAS[porDia.indexOf(maxDia)].toLowerCase()}${porDia.filter(v => v === maxDia).length > 1 ? " (empate)" : ""} · ${TXT_PERIODO[stPeriodo]}`
-    : `${TXT_PERIODO[stPeriodo][0].toUpperCase()}${TXT_PERIODO[stPeriodo].slice(1)}`;
-  grafica("cDia", "bar", {
-    labels: DIAS.map(d => estrecho ? d.slice(0, 3) : d),
-    datasets: [{ label: "Faltas", data: porDia, backgroundColor: COLOR[p], borderRadius: 4, barPercentage: .6 }]
-  }, {
-    responsive: true, maintainAspectRatio: false,
-    plugins: { legend: { display: false }, tooltip: { callbacks: { title: i => DIAS[i[0].dataIndex], label: c => ` ${c.raw} ${c.raw === 1 ? "falta" : "faltas"}` } } },
-    scales: { x: { grid: { display: false } }, y: ejeEntero }
-  }, maxDia > 0, `${tu ? "No tienes" : quien + " no tiene"} faltas ${TXT_PERIODO[stPeriodo]}. 🎉`);
-
-  // 5. Comparativa del grupo: faltas (del periodo) y retrasos (total) de cada miembro
-  const faltasGrupo = PERSONAS.map(x => enPeriodo(eventos(x)).length);
-  const retrasosGrupo = PERSONAS.map(x => MODULOS.reduce((a, m) => a + datos.retrasos[x][m.id], 0));
-  $("stGrupoCap").textContent = `Barra sólida: faltas ${TXT_PERIODO[stPeriodo]} · barra clara: retrasos en todo el curso`;
-  grafica("cGrupo", "bar", {
-    labels: PERSONAS.map(x => nombre(x)),
-    datasets: [
-      { label: "Faltas", data: faltasGrupo, backgroundColor: PERSONAS.map(x => COLOR[x]), borderRadius: 4, barPercentage: .8, categoryPercentage: .6 },
-      { label: "Retrasos", data: retrasosGrupo, backgroundColor: PERSONAS.map(x => COLOR[x] + "66"), borderColor: PERSONAS.map(x => COLOR[x]), borderWidth: 1, borderRadius: 4, barPercentage: .8, categoryPercentage: .6 }
-    ]
-  }, {
-    responsive: true, maintainAspectRatio: false,
-    plugins: {
-      legend: { position: "bottom", labels: { usePointStyle: false, boxWidth: 12, boxHeight: 12, generateLabels: ch => ch.data.datasets.map((ds, i) => ({
-        text: ds.label, datasetIndex: i, hidden: !ch.isDatasetVisible(i), fontColor: "#f3f6fa",
-        fillStyle: i ? "rgba(243,246,250,.3)" : "rgba(243,246,250,.85)", strokeStyle: "rgba(243,246,250,.85)", lineWidth: i ? 1 : 0
-      })) } },
-      tooltip: { callbacks: { label: c => ` ${c.dataset.label}: ${c.raw}` } }
-    },
-    scales: { x: { grid: { display: false } }, y: ejeEntero }
-  }, faltasGrupo.some(Boolean) || retrasosGrupo.some(Boolean), `Nadie del grupo tiene faltas ni retrasos ${TXT_PERIODO[stPeriodo]}. 🎉`);
-}
-
-// 6. Mapa de calor tipo GitHub: una columna por semana y una fila por día de clase (L–V)
-function renderMapa(p) {
-  const cuenta = {}, porDia = {};
-  eventos(p).forEach(e => {
-    cuenta[e.fecha] = (cuenta[e.fecha] || 0) + 1;
-    (porDia[e.fecha] ||= []).push(MODULOS.find(m => m.id === e.modulo).nombre);
-  });
-  const lectivos = new Set(LECTIVOS.map(d => d.fecha)), hoy = hoyISO();
-  const inicio = fechaUTC(CALENDARIO.inicio);
-  inicio.setUTCDate(inicio.getUTCDate() - ((inicio.getUTCDay() + 6) % 7));   // lunes de la primera semana
-  const fin = LECTIVOS.at(-1).fecha;
-  let html = "", col = 2, mesAnt = "";
-  for (let lunes = new Date(inicio); isoUTC(lunes) <= fin; lunes.setUTCDate(lunes.getUTCDate() + 7), col++) {
-    for (let k = 0; k < 5; k++) {
-      const d = new Date(lunes); d.setUTCDate(d.getUTCDate() + k);
-      const iso = isoUTC(d), pos = `grid-row:${k + 2};grid-column:${col}`;
-      if (iso < CALENDARIO.inicio || iso > fin) { html += `<i style="${pos};visibility:hidden"></i>`; continue; }
-      const mes = mesCorto(iso);
-      if (mes !== mesAnt && (d.getUTCDate() <= 7 || !mesAnt)) { html += `<span class="mes" style="grid-column:${col}">${mes}</span>`; mesAnt = mes; }
-      let cls = "";
-      if (!lectivos.has(iso)) cls = "libre";
-      else if (iso > hoy) cls = "fut";
-      else if (cuenta[iso]) cls = "n" + Math.min(4, cuenta[iso]);
-      if (iso === hoy) cls += " hoy";
-      html += `<i class="${cls}" style="${pos}" data-f="${iso}"></i>`;
-    }
-  }
-  ["L", "", "X", "", "V"].forEach((t, k) => { html += `<span class="dl" style="grid-row:${k + 2}">${t}</span>`; });
-  const mapa = $("stHeat");
-  mapa.style.gridTemplateColumns = `14px repeat(${col - 2}, minmax(0, 1fr))`;
-  mapa.innerHTML = html;
-  const total = Object.values(cuenta).reduce((a, b) => a + b, 0);
-  $("stHeatCap").textContent = `${p === yo ? "Mis faltas" : "Faltas de " + nombre(p)} día a día desde el inicio de curso · ${total} en total`;
-  const info = $("stHeatInfo");
-  const detalle = iso => {
-    if (!iso) return;
-    const n = cuenta[iso] || 0;
-    const txt = diaLargo(iso);
-    info.textContent = `${txt[0].toUpperCase()}${txt.slice(1)}: ` + (!lectivos.has(iso) ? "sin clase"
-      : iso > hoy ? "todavía no ha llegado"
-      : n ? `${n} ${n === 1 ? "falta" : "faltas"} (${[...new Set(porDia[iso])].join(", ")})` : "sin faltas");
-    mapa.querySelectorAll("i.sel").forEach(i => i.classList.remove("sel"));
-    mapa.querySelector(`i[data-f="${iso}"]`)?.classList.add("sel");
-  };
-  mapa.onmouseover = ev => detalle(ev.target.dataset?.f);
-  mapa.onclick = ev => detalle(ev.target.dataset?.f);
+  // 3. Lo que te queda en cada módulo, de menos a más margen
+  const margen = MODULOS.map(m => ({ m, quedan: m.max - datos.faltas[p][m.id] }))
+    .sort((a, b) => a.quedan - b.quedan || a.quedan / a.m.max - b.quedan / b.m.max);
+  $("stMargen").innerHTML = margen.map(({ m, quedan }) => {
+    const cls = quedan <= 0 ? "sin" : quedan <= m.max * .25 ? "justo" : "";
+    const txt = quedan < 0 ? `Pasado por ${-quedan}` : quedan === 0 ? "Sin margen" : `Quedan ${quedan}`;
+    return `<li class="${cls}"><span>${esc(m.nombre)}</span><b>${txt}</b></li>`;
+  }).join("");
 }
 
 $("stPersona").onchange = ev => { stPersona = ev.target.value; renderEstadisticas(); };
-document.querySelectorAll("#stPeriodo button").forEach(b => b.onclick = () => { stPeriodo = b.dataset.periodo; renderEstadisticas(); });
-// Al pasar de móvil a escritorio (o girar el móvil) cambian las etiquetas de los ejes
-let anchoAnt = window.innerWidth < 560;
-window.addEventListener("resize", () => {
-  const ahora = window.innerWidth < 560;
-  if (ahora !== anchoAnt && yo) { anchoAnt = ahora; renderEstadisticas(); }
-});
 
 function render() {
   if (!yo) return;

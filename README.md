@@ -19,8 +19,8 @@ al momento sin recargar.
 - Los retrasos se cuentan aparte de las faltas (no suman para el límite).
 - **Proyección**: con las faltas que llevas y las clases de cada módulo que ya han
   pasado (según el horario) se calcula tu ritmo y se estima cuándo te quedarías sin
-  margen en cada módulo (por ejemplo, "a este ritmo te quedas sin margen en
-  Interfaces a mediados de enero") o con cuántas faltas acabarías el curso.
+  margen en cada módulo (por ejemplo, "a este ritmo te quedas sin margen en Desarrollo de
+  interfaces a mediados de enero") o con cuántas faltas acabarías el curso.
 
 ### Calendario y horario del curso
 

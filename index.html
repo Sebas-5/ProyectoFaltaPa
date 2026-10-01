@@ -187,9 +187,10 @@
   .proy-top.bien { border-color: rgba(61,220,132,.6); }
   .proy-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px 16px; }
   .pr { border: 1px solid var(--border-soft); border-radius: 12px; padding: 12px 14px; font-size: .8rem; }
-  .pr .pr-top { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
-  .pr .pr-top b { font-weight: 500; }
-  .pr .pr-top span { color: var(--muted); text-align: right; }
+  .pr { display: flex; flex-direction: column; }
+  .pr .pr-top { display: grid; gap: 2px; margin-bottom: 10px; flex: 1; align-content: start; }
+  .pr .pr-top b { font-weight: 500; line-height: 1.35; }
+  .pr .pr-top span { color: var(--muted); font-size: .74rem; }
   .pr.mal .pr-top span, .pr.mal .pr-top b { color: var(--bad); }
   .pr.justo .pr-top span { color: var(--warn); }
   .pr.bien .pr-top span { color: #3ddc84; }
@@ -569,15 +570,15 @@ const auth = getAuth(app);
 const db = getDatabase(app);
 
 const MODULOS = [
-  { id: "SSG",   nombre: "SSG",            corto: "SSG", max: 16, horas: 96 },
-  { id: "PGV",   nombre: "PGV",            corto: "PGV", max: 16, horas: 96 },
-  { id: "FOL",   nombre: "FOL",            corto: "FOL", max: 16, horas: 96 },
-  { id: "PROY",  nombre: "Proyecto",       corto: "PRY", max: 13, horas: 64 },
-  { id: "SOST",  nombre: "Sostenibilidad", corto: "SOS", max: 6,  horas: 32 },
-  { id: "AD",    nombre: "Acceso a Datos", corto: "AD",  max: 29, horas: 147 },
-  { id: "DI",    nombre: "Interfaces",     corto: "DI",  max: 27, horas: 138 },
-  { id: "PGL",   nombre: "PGL",            corto: "PGL", max: 18, horas: 110 },
-  { id: "CIBER", nombre: "Ciberseguridad", corto: "CIB", max: 16, horas: 96 }
+  { id: "SSG",   nombre: "Sistemas de gestión empresarial",                corto: "SSG", max: 16, horas: 96 },
+  { id: "PGV",   nombre: "Programación de servicios y procesos",           corto: "PGV", max: 16, horas: 96 },
+  { id: "FOL",   nombre: "Itinerario personal para la empleabilidad II",   corto: "IPW", max: 16, horas: 96 },
+  { id: "PROY",  nombre: "Proyecto intermodular",                          corto: "PRY", max: 13, horas: 64 },
+  { id: "SOST",  nombre: "Sostenibilidad aplicada al sistema productivo",  corto: "SOS", max: 6,  horas: 32 },
+  { id: "AD",    nombre: "Acceso a datos",                                 corto: "AD",  max: 29, horas: 147 },
+  { id: "DI",    nombre: "Desarrollo de interfaces",                       corto: "DI",  max: 27, horas: 138 },
+  { id: "PGL",   nombre: "Programación multimedia y dispositivos móviles", corto: "PGL", max: 18, horas: 110 },
+  { id: "CIBER", nombre: "Ciberseguridad",                                 corto: "CIB", max: 16, horas: 96 }
 ];
 // Ids internos de cada persona. En la base de datos:
 //   faltas/{persona}/{modulo}, retrasos/{persona}/{modulo}, perfiles/{persona}
@@ -590,8 +591,8 @@ const TIPOS = ["faltas", "retrasos"];
 const CALENDARIO = {
   inicio: "2026-09-17",          // primer día de clase (jueves)
   fin: "2027-02-20",             // último día de clase
-  festivos: ["2026-10-12", "2026-12-07", "2026-12-08"],
-  vacaciones: [["2026-12-23", "2027-01-07"]]   // Navidad (ambos días incluidos)
+  festivos: ["2026-10-12", "2026-11-02", "2026-12-07", "2026-12-08", "2027-02-02", "2027-02-09"],
+  vacaciones: [["2026-12-22", "2027-01-07"]]   // Navidad (ambos días incluidos)
 };
 
 // Sesiones de cada módulo por día de la semana: [lunes, martes, miércoles, jueves, viernes]

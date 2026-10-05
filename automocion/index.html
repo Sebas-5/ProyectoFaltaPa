@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Faltas Automoción</title>
+<meta name="description" content="Control de faltas y retrasos del ciclo de Automoción.">
+<meta name="theme-color" content="#1c1a21">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;1,400;1,500&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #1c1a21;
+    --bg-deep: #141217;
+    --acento: #e5383b;                    /* color principal (rojo) */
+    --acento-suave: rgba(229, 56, 59, .15);
+    --text: #f6f3f3;
+    --muted: rgba(246, 243, 243, .6);
+    --border: rgba(246, 243, 243, .26);
+    --border-soft: rgba(246, 243, 243, .12);
+    --warn: #f5a524;
+    --bad: #ff5c8a;                       /* alerta: rosa intenso, para no confundirse con el rojo principal */
+    --ok: #3ddc84;
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html { scroll-behavior: smooth; }
+  html, body { margin: 0; overflow-x: hidden; }
+  @supports (overflow: clip) { html, body { overflow-x: clip; } }
+  body { background: var(--bg); color: var(--text); font-family: "Poppins", system-ui, sans-serif; font-weight: 300; position: relative; }
+
+  .glow { position: absolute; border-radius: 50%; filter: blur(90px); pointer-events: none; z-index: 0; background: radial-gradient(circle, rgba(229,56,59,.45), rgba(229,56,59,0) 70%); }
+  .g1 { width: 520px; height: 520px; top: -120px; right: -120px; }
+  .g2 { width: 460px; height: 460px; top: 820px; left: -200px; opacity: .8; }
+  .g3 { width: 420px; height: 420px; top: 1700px; right: -160px; opacity: .7; }
+  .wrap { position: relative; z-index: 1; max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+
+  /* NAV */
+  nav { display: flex; justify-content: space-between; align-items: center; padding: 26px 0; }
+  .logo { display: flex; align-items: center; gap: 10px; font-weight: 600; letter-spacing: .08em; font-size: .85rem; color: inherit; text-decoration: none; }
+  .logo i { width: 24px; height: 24px; border-radius: 50%; background: var(--text); position: relative; display: inline-block; }
+  .logo i::after { content: ""; position: absolute; left: 12px; top: 0; width: 12px; height: 24px; border-radius: 0 12px 12px 0; background: var(--acento); }
+  .links { display: flex; align-items: center; gap: 26px; font-size: .85rem; }
+  .links a { color: var(--muted); text-decoration: none; transition: color .15s; }
+  .links a:hover { color: var(--text); }
+
+  .pill { display: inline-block; border-radius: 999px; padding: 10px 26px; font: inherit; font-size: .85rem; font-weight: 500; cursor: pointer; text-decoration: none; transition: all .2s; border: 1.5px solid var(--acento); background: var(--acento); color: #fff; }
+  .pill:hover { box-shadow: 0 0 24px rgba(229,56,59,.5); }
+  .pill.ghost { background: transparent; border-color: var(--text); color: var(--text); }
+  .pill.ghost:hover { border-color: var(--acento); color: var(--acento); box-shadow: none; }
+  .links .pill { color: #fff; }
+
+  /* HERO */
+  .hero { display: grid; grid-template-columns: 1.1fr 1fr; gap: 40px; align-items: center; padding: 60px 0 70px; }
+  .over { color: var(--acento); font-size: .8rem; font-weight: 500; letter-spacing: .05em; margin-bottom: 8px; }
+  h1 { font-weight: 600; font-size: clamp(2.2rem, 5vw, 3.4rem); line-height: 1.1; margin: 0 0 18px; }
+  .serif { font-family: "Playfair Display", serif; font-style: italic; font-weight: 400; }
+  .lead { color: var(--muted); font-size: .95rem; line-height: 1.7; max-width: 440px; margin: 0 0 30px; }
+  .cta { display: flex; gap: 12px; flex-wrap: wrap; }
+  .stats { border: 1.5px solid var(--border); border-radius: 18px; padding: 28px; background: rgba(20,18,23,.35); backdrop-filter: blur(6px); display: grid; grid-template-columns: repeat(3, 1fr); text-align: center; gap: 12px; }
+  .stats b { display: block; font-size: 2rem; font-weight: 600; }
+  .stats span { font-size: .72rem; color: var(--muted); }
+  .stats .full { grid-column: 1 / -1; border-top: 1px solid var(--border-soft); padding-top: 18px; margin-top: 8px; text-align: left; font-size: .85rem; color: var(--muted); }
+  .stats .full strong { color: var(--text); font-weight: 500; }
+  .divider { height: 1px; background: var(--border); margin: 0 auto; max-width: 80%; }
+
+  section { padding: 80px 0 20px; }
+  .head { text-align: center; margin-bottom: 40px; }
+  .head .over { margin-bottom: 4px; }
+  h2 { font-family: "Playfair Display", serif; font-style: italic; font-weight: 400; font-size: clamp(1.8rem, 4vw, 2.4rem); margin: 0 0 10px; }
+  .head p { color: var(--muted); font-size: .88rem; max-width: 560px; margin: 0 auto; line-height: 1.7; }
+
+  /* PROYECCIÓN */
+  .proy-top { border: 1.5px solid var(--border); border-radius: 18px; padding: 24px 26px; margin-bottom: 18px; background: rgba(20,18,23,.35); display: flex; gap: 18px; align-items: center; }
+  .proy-top .ico { font-size: 2.2rem; line-height: 1; flex: none; }
+  .proy-top p { margin: 0; font-size: 1.05rem; line-height: 1.55; }
+  .proy-top p strong { font-weight: 600; }
+  .proy-top small { display: block; color: var(--muted); font-size: .78rem; margin-top: 6px; }
+  .proy-top.mal { border-color: var(--bad); background: rgba(255,92,138,.08); }
+  .proy-top.mal strong { color: var(--bad); }
+  .proy-top.bien { border-color: rgba(61,220,132,.6); }
+  .proy-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px 16px; }
+  .pr { border: 1px solid var(--border-soft); border-radius: 12px; padding: 12px 14px; font-size: .8rem; display: flex; flex-direction: column; }
+  .pr .pr-top { display: grid; gap: 2px; margin-bottom: 10px; flex: 1; align-content: start; }
+  .pr .pr-top b { font-weight: 500; line-height: 1.35; }
+  .pr .pr-top span { color: var(--muted); font-size: .74rem; }
+  .pr.mal .pr-top span, .pr.mal .pr-top b { color: var(--bad); }
+  .pr.justo .pr-top span { color: var(--warn); }
+  .pr.bien .pr-top span { color: var(--ok); }
+  .pbar { position: relative; height: 6px; border-radius: 6px; background: var(--border-soft); }
+  .pbar .ya { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 6px; background: var(--acento); }
+  .pbar .prev { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 6px; opacity: .55; background: repeating-linear-gradient(135deg, var(--c, var(--acento)) 0 4px, transparent 4px 7px); }
+  .pr.mal .pbar { --c: var(--bad); }
+  .pr.justo .pbar { --c: var(--warn); }
+  .leyenda { color: var(--muted); font-size: .72rem; text-align: center; margin-top: 14px; }
+
+  /* ESTADÍSTICAS */
+  .kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 16px; }
+  .kpi { border: 1.5px solid var(--border); border-radius: 16px; padding: 20px; background: rgba(20,18,23,.35); min-width: 0; }
+  .kpi span { display: block; font-size: .72rem; color: var(--muted); }
+  .kpi b { display: block; font-size: 2rem; font-weight: 600; line-height: 1.15; margin-top: 6px; }
+  .kpi b.txt { font-size: 1.05rem; font-weight: 500; line-height: 1.35; margin-top: 8px; }
+  .st-cols { display: grid; grid-template-columns: 1.3fr 1fr; gap: 16px; align-items: start; }
+  .st-caja { border: 1.5px solid var(--border); border-radius: 16px; padding: 20px; background: rgba(20,18,23,.35); min-width: 0; }
+  .st-caja h3 { font-weight: 500; font-size: 1rem; margin: 0 0 16px; }
+  .vacio { text-align: center; color: var(--muted); font-size: .85rem; padding: 48px 16px; border: 1px dashed var(--border); border-radius: 12px; margin: 0; }
+  .barras { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 8px; align-items: end; height: 210px; }
+  .barra { display: grid; grid-template-rows: auto 1fr auto; height: 100%; text-align: center; min-width: 0; }
+  .barra b { font-size: .8rem; font-weight: 500; margin-bottom: 4px; }
+  .barra .col { display: flex; align-items: flex-end; border-bottom: 1px solid var(--border); }
+  .barra .col i { display: block; width: 100%; max-width: 46px; margin: 0 auto; min-height: 2px; border-radius: 4px 4px 0 0; background: var(--acento); transition: height .3s; }
+  .barra.cero b { color: var(--muted); }
+  .barra span { font-size: .72rem; color: var(--muted); margin-top: 6px; }
+  .margen { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+  .margen li { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 9px 12px; border-radius: 10px; background: rgba(246,243,243,.04); border-left: 3px solid var(--border); font-size: .85rem; }
+  .margen li span { min-width: 0; }
+  .margen li b { font-weight: 500; white-space: nowrap; }
+  .margen li.justo { border-left-color: var(--warn); }
+  .margen li.justo b { color: var(--warn); }
+  .margen li.sin { border-left-color: var(--bad); }
+  .margen li.sin b { color: var(--bad); }
+
+  /* MÓDULOS */
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .mod { border: 1.5px solid var(--border); border-radius: 16px; padding: 22px; background: rgba(20,18,23,.35); transition: border-color .2s; }
+  .mod:hover { border-color: rgba(229,56,59,.7); }
+  .mtop { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+  .icon { width: 40px; height: 40px; border-radius: 10px; border: 1.5px solid var(--border); display: grid; place-items: center; font-size: .7rem; font-weight: 600; letter-spacing: .03em; color: var(--c, var(--acento)); flex: none; }
+  .mh { font-size: .72rem; color: var(--muted); text-align: right; }
+  .mname { font-weight: 500; font-size: 1rem; margin: 14px 0 2px; }
+  .st { font-size: .78rem; color: var(--c, var(--muted)); }
+  .proy { font-size: .72rem; color: var(--muted); margin-top: 4px; }
+  .proy.mal { color: var(--bad); }
+  .proy.justo { color: var(--warn); }
+  .bar { height: 5px; border-radius: 5px; background: var(--border-soft); margin: 16px 0; overflow: hidden; }
+  .fill { height: 100%; border-radius: 5px; background: var(--c, var(--acento)); box-shadow: 0 0 12px var(--c, var(--acento)); transition: width .3s; }
+  .mbot { display: flex; justify-content: space-between; align-items: center; }
+  .cnt { font-size: 1.8rem; font-weight: 600; line-height: 1; }
+  .cnt span { font-size: .9rem; font-weight: 300; color: var(--muted); }
+  .btns { display: flex; gap: 8px; }
+  .btns button { width: 38px; height: 38px; border-radius: 50%; cursor: pointer; font: inherit; font-size: 1.15rem; border: 1.5px solid var(--text); background: transparent; color: var(--text); transition: all .15s; line-height: 1; }
+  .btns button:hover { border-color: var(--acento); color: var(--acento); }
+  .btns button.plus { background: var(--acento); border-color: var(--acento); color: #fff; }
+  .btns button.plus:hover { box-shadow: 0 0 18px rgba(229,56,59,.6); color: #fff; }
+  .btns button:active { transform: scale(.92); }
+  .btns.sm button { width: 28px; height: 28px; font-size: .95rem; }
+  .late { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-soft); margin-top: 16px; padding-top: 12px; }
+  .lcnt { font-size: .8rem; color: var(--muted); }
+  .lcnt b { color: var(--text); font-weight: 600; font-size: 1rem; margin-left: 6px; }
+  .mod.warn { --c: var(--warn); }
+  .mod.max, .mod.dead { --c: var(--bad); }
+  .mod.dead { border-color: var(--bad); background: rgba(255,92,138,.08); }
+  .mod.warn .st, .mod.max .st, .mod.dead .st { font-weight: 500; }
+  .pop { animation: pop .22s ease; }
+  @keyframes pop { 50% { transform: scale(1.12); } }
+
+  /* VENTANA DE FECHA */
+  .modal { position: fixed; inset: 0; z-index: 25; background: rgba(12,10,14,.72); backdrop-filter: blur(4px); display: grid; place-items: center; padding: 16px; overflow-y: auto; }
+  .card { position: relative; width: 100%; max-width: 400px; border: 1.5px solid var(--border); border-radius: 18px; background: rgba(20,18,23,.92); padding: 30px 26px; }
+  .card h2 { text-align: center; font-size: 1.9rem; margin-bottom: 4px; }
+  .card .sub { text-align: center; color: var(--muted); font-size: .82rem; margin: 0 0 22px; line-height: 1.6; }
+  .card form { display: grid; gap: 14px; }
+  .card label { display: grid; gap: 6px; font-size: .75rem; color: var(--muted); }
+  .card input[type=date] { width: 100%; background: var(--bg-deep); border: 1.5px solid var(--border); border-radius: 10px; padding: 10px 14px; color: var(--text); font: inherit; font-size: .9rem; outline: none; color-scheme: dark; }
+  .card input:focus { border-color: var(--acento); }
+  .card .pill { width: 100%; margin-top: 4px; }
+  .rapidas { display: flex; flex-wrap: wrap; gap: 8px; }
+  .rapidas button { border: 1.5px solid var(--border); background: transparent; color: var(--text); border-radius: 999px; padding: 6px 12px; font: inherit; font-size: .78rem; cursor: pointer; }
+  .rapidas button:hover { border-color: var(--acento); }
+  .rapidas button.on { background: var(--acento); border-color: var(--acento); color: #fff; }
+  .msg { font-size: .8rem; text-align: center; min-height: 1.2em; margin: 0; color: var(--bad); }
+  .cerrar { position: absolute; top: 14px; right: 16px; background: none; border: none; color: var(--muted); font-size: 1.4rem; cursor: pointer; line-height: 1; }
+  .cerrar:hover { color: var(--text); }
+
+  /* PIE */
+  footer { background: var(--acento); color: #fff; margin-top: 90px; position: relative; z-index: 1; }
+  .fwrap { max-width: 1080px; margin: 0 auto; padding: 44px 24px 36px; display: grid; grid-template-columns: 1.3fr 1fr 1fr; gap: 30px; }
+  footer h4 { margin: 0 0 14px; font-size: .9rem; font-weight: 600; }
+  footer p, footer a, footer button { font-size: .82rem; color: rgba(255,255,255,.9); line-height: 1.8; }
+  footer ul { list-style: none; margin: 0; padding: 0; }
+  footer a { text-decoration: none; }
+  footer a:hover, footer button:hover { color: #fff; text-decoration: underline; }
+  footer button { background: none; border: none; padding: 0; font-family: inherit; cursor: pointer; display: block; text-align: left; }
+  .copy { border-top: 1px solid rgba(255,255,255,.3); text-align: center; font-size: .75rem; padding: 14px; color: rgba(255,255,255,.85); }
+
+  .toast { position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 16px); opacity: 0; background: var(--bg-deep); color: var(--text); border: 1.5px solid var(--acento); padding: 12px 22px; border-radius: 999px; font-size: .85rem; transition: all .25s; pointer-events: none; z-index: 30; max-width: calc(100% - 32px); text-align: center; }
+  .toast.show { transform: translate(-50%, 0); opacity: 1; }
+  .toast.alert { border-color: var(--bad); }
+
+  @media (max-width: 900px) {
+    .hero { grid-template-columns: 1fr; padding-top: 30px; }
+    .grid, .proy-list { grid-template-columns: repeat(2, 1fr); }
+    .st-cols { grid-template-columns: 1fr; }
+    .fwrap { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 560px) {
+    .wrap { padding: 0 16px; }
+    .links a:not(.pill) { display: none; }
+    .grid, .proy-list { grid-template-columns: 1fr; }
+    .stats { padding: 20px; }
+    .stats b { font-size: 1.6rem; }
+    .proy-top { padding: 18px; }
+    .kpis { grid-template-columns: 1fr 1fr; gap: 10px; }
+    .kpis .kpi:last-child { grid-column: 1 / -1; }
+    .kpi { padding: 14px; }
+    .kpi b { font-size: 1.6rem; }
+    .st-caja { padding: 16px 14px; }
+    .barras { gap: 4px; height: 180px; }
+    .barra span { font-size: .62rem; }
+    .barra b { font-size: .7rem; }
+    .fwrap { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="glow g1"></div>
+<div class="glow g2"></div>
+<div class="glow g3"></div>
+
+<div class="wrap">
+  <nav>
+    <a class="logo" href="#inicio"><i></i>AUTOMOCIÓN</a>
+    <div class="links">
+      <a href="#proyeccion">Proyección</a>
+      <a href="#estadisticas">Estadísticas</a>
+      <a class="pill" href="#modulos">Apuntar falta</a>
+    </div>
+  </nav>
+
+  <div class="hero" id="inicio">
+    <div>
+      <div class="over">Curso 2026 / 2027</div>
+      <h1>Control de <span class="serif">Faltas</span><br>Automoción</h1>
+      <p class="lead">Apunta tus faltas con su fecha, mira cuánto margen te queda en cada módulo y a qué ritmo vas. Todo se guarda en este navegador.</p>
+      <div class="cta">
+        <a class="pill" href="#modulos">Apuntar falta</a>
+        <a class="pill ghost" href="#proyeccion">A este ritmo…</a>
+      </div>
+    </div>
+    <div class="stats" id="stats"></div>
+  </div>
+
+  <div class="divider"></div>
+
+  <section id="proyeccion">
+    <div class="head">
+      <div class="over">Proyección</div>
+      <h2>A este ritmo…</h2>
+      <p id="proySub"></p>
+    </div>
+    <div class="proy-top" id="proyTop"></div>
+    <div class="proy-list" id="proyList"></div>
+    <p class="leyenda">Barra llena: faltas actuales · rayada: previsión a final de curso · el total es el límite del módulo.</p>
+  </section>
+
+  <section id="estadisticas">
+    <div class="head">
+      <div class="over">Estadísticas</div>
+      <h2>De un vistazo</h2>
+    </div>
+    <div class="kpis" id="stKpis"></div>
+    <div class="st-cols">
+      <div class="st-caja">
+        <h3>Mis faltas por mes</h3>
+        <div class="barras" id="stBarras" role="img"></div>
+        <p class="vacio" id="stSinFaltas" hidden>Sin faltas todavía. 🎉</p>
+      </div>
+      <div class="st-caja">
+        <h3>Lo que te queda</h3>
+        <ul class="margen" id="stMargen"></ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="modulos">
+    <div class="head">
+      <div class="over">Módulos</div>
+      <h2>Faltas y retrasos por módulo</h2>
+      <p>Pulsa + para apuntar una falta y elige el día. Naranja al acercarte al límite, rojo al alcanzarlo. Los retrasos se apuntan aparte.</p>
+    </div>
+    <div class="grid" id="grid"></div>
+  </section>
+</div>
+
+<footer>
+  <div class="fwrap">
+    <div>
+      <h4>Faltas Automoción</h4>
+      <p>Los datos se guardan solo en este navegador. Exporta el archivo de vez en cuando para tener una copia o pasarlos a otro dispositivo.</p>
+    </div>
+    <div>
+      <h4>Menú</h4>
+      <ul>
+        <li><a href="#inicio">Inicio</a></li>
+        <li><a href="#proyeccion">Proyección</a></li>
+        <li><a href="#estadisticas">Estadísticas</a></li>
+        <li><a href="#modulos">Módulos</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Datos</h4>
+      <button id="exportar" type="button">Exportar datos</button>
+      <button id="importar" type="button">Importar datos</button>
+      <button id="reset" type="button">Borrar todo</button>
+      <input type="file" id="fileInput" accept=".json,application/json" hidden>
+    </div>
+  </div>
+  <div class="copy">Ciclo de Automoción · curso 2026/2027</div>
+</footer>
+
+<div class="toast" id="toast" role="status"></div>
+
+<!-- Ventana para elegir el día de la falta al pulsar + -->
+<div class="modal" id="fechaModal" hidden>
+  <div class="card">
+    <button class="cerrar" type="button" id="fechaCerrar" aria-label="Cerrar">×</button>
+    <h2>¿Qué día faltaste?</h2>
+    <p class="sub" id="fechaSub"></p>
+    <form id="fFecha" novalidate>
+      <div class="rapidas" id="fechaRapidas"></div>
+      <label>Fecha de la falta<input type="date" name="fecha" required></label>
+      <p class="msg" id="fechaMsg"></p>
+      <button class="pill" type="submit">Apuntar falta</button>
+    </form>
+  </div>
+</div>
+
+<script>
+// ─────────────────────────────────────────────────────────────
+//  CONFIGURACIÓN DEL CURSO (cámbiala aquí si algo no coincide)
+// ─────────────────────────────────────────────────────────────
+
+// Módulos con sus horas. El límite de faltas es el % de las horas totales
+// (PORCENTAJE_LIMITE), redondeado hacia abajo.
+const PORCENTAJE_LIMITE = 0.15;
+const MODULOS = [
+  { id: "MOT", nombre: "Motores térmicos y sistemas auxiliares",              horasSemana: 8, horas: 269 },
+  { id: "ELE", nombre: "Sistemas eléctricos, de seguridad y confortabilidad", horasSemana: 8, horas: 269 },
+  { id: "TRA", nombre: "Sistemas de transmisión de fuerzas y trenes de rodaje", horasSemana: 7, horas: 238 },
+  { id: "DIG", nombre: "Digitalización",                                      horasSemana: 2, horas: 64 },
+  { id: "ING", nombre: "Inglés profesional",                                  horasSemana: 2, horas: 64 },
+  { id: "IPE", nombre: "Itinerario personal para la empleabilidad I",          horasSemana: 3, horas: 96 }
+].map(m => ({ ...m, max: Math.floor(m.horas * PORCENTAJE_LIMITE) }));
+
+// Fechas en formato AAAA-MM-DD
+const CALENDARIO = {
+  inicio: "2026-09-17",
+  fin: "2027-06-18",
+  festivos: ["2026-10-12", "2026-11-02", "2026-12-07", "2026-12-08", "2027-02-02", "2027-02-09"],
+  vacaciones: [["2026-12-22", "2027-01-07"], ["2027-03-22", "2027-03-26"]]   // Navidad y Semana Santa
+};
+
+const CLAVE = "faltas_automocion_v1";   // dónde se guardan los datos en el navegador
+
+// ─────────────────────────────────────────────────────────────
+
+const $ = id => document.getElementById(id);
+
+// Días de clase: de lunes a viernes, sin festivos ni vacaciones
+const LECTIVOS = (() => {
+  const dias = [];
+  const libre = f => CALENDARIO.festivos.includes(f) || CALENDARIO.vacaciones.some(([a, b]) => f >= a && f <= b);
+  for (let d = new Date(CALENDARIO.inicio + "T00:00:00Z"); ; d.setUTCDate(d.getUTCDate() + 1)) {
+    const fecha = d.toISOString().slice(0, 10);
+    if (fecha > CALENDARIO.fin) break;
+    const dia = d.getUTCDay();
+    if (dia !== 0 && dia !== 6 && !libre(fecha)) dias.push(fecha);
+  }
+  return dias;
+})();
+
+function hoyISO() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+function fechaUTC(iso) { return new Date(iso + "T00:00:00Z"); }
+function fechaLarga(iso) { return fechaUTC(iso).toLocaleDateString("es-ES", { day: "numeric", month: "long", timeZone: "UTC" }); }
+function cuando(iso) {
+  const d = fechaUTC(iso), dia = d.getUTCDate();
+  return `a ${dia <= 10 ? "principios" : dia <= 20 ? "mediados" : "finales"} de ${d.toLocaleDateString("es-ES", { month: "long", timeZone: "UTC" })}`;
+}
+
+// ── Datos (en el navegador) ───────────────────────────────────
+// { faltas: [{ id, modulo, fecha }], retrasos: { MOT: 0, … } }
+
+function vacio() {
+  return { faltas: [], retrasos: Object.fromEntries(MODULOS.map(m => [m.id, 0])) };
+}
+function normalizar(obj) {
+  const d = vacio();
+  if (!obj || typeof obj !== "object") return d;
+  if (Array.isArray(obj.faltas)) obj.faltas.forEach(f => {
+    if (f && MODULOS.some(m => m.id === f.modulo) && /^\d{4}-\d{2}-\d{2}$/.test(f.fecha))
+      d.faltas.push({ id: String(f.id || Math.random().toString(36).slice(2)), modulo: f.modulo, fecha: f.fecha });
+  });
+  MODULOS.forEach(m => { const v = obj.retrasos?.[m.id]; if (Number.isInteger(v) && v >= 0) d.retrasos[m.id] = v; });
+  return d;
+}
+function cargar() {
+  try { return normalizar(JSON.parse(localStorage.getItem(CLAVE))); } catch (e) { return vacio(); }
+}
+function guardar() {
+  try { localStorage.setItem(CLAVE, JSON.stringify(datos)); }
+  catch (e) { toast("No se pudo guardar en este navegador", true); }
+}
+
+let datos = cargar();
+let ultimo = null;   // { tipo, id } del contador que hay que animar
+
+const faltasDe = id => datos.faltas.filter(f => f.modulo === id).length;
+const total = () => datos.faltas.length;
+
+// ── Cálculos ──────────────────────────────────────────────────
+
+function estado(f, max) {
+  if (f > max) return { cls: "dead", txt: "Evaluación continua perdida" };
+  if (f === max) return { cls: "max", txt: "Límite alcanzado" };
+  if (f / max >= .75) return { cls: "warn", txt: `Cuidado, quedan ${max - f}` };
+  return { cls: "", txt: `Quedan ${max - f} faltas` };
+}
+
+// Ritmo desde que empezaron las clases hasta hoy (faltas / días de clase pasados),
+// repetido en los días de clase que quedan
+function proyeccion(f, max, hoy = hoyISO()) {
+  const total = LECTIVOS.length;
+  const hechos = LECTIVOS.filter(d => d <= hoy).length;
+  if (hechos >= total) return { tipo: "fin" };
+  if (f > max) return { tipo: "perdida" };
+  if (f === max) return { tipo: "limite" };
+  if (f === 0) return { tipo: "cero", final: 0 };
+  if (hechos < 5) return { tipo: "pocos" };
+  const semanal = f / hechos * 5;
+  const final = f * total / hechos;
+  if (final < max) return { tipo: final >= max * .75 ? "justo" : "ok", final: Math.round(final), semanal };
+  const dia = Math.min(total, Math.ceil(max * hechos / f));
+  return { tipo: "agota", fecha: LECTIVOS[dia - 1], final: Math.round(final), semanal };
+}
+function ritmoTxt(semanal) {
+  const n = x => x.toLocaleString("es-ES", { maximumFractionDigits: 1 });
+  return semanal >= 1 ? `${n(semanal)} por semana` : `1 cada ${n(1 / semanal)} semanas`;
+}
+
+// Días de clase seguidos sin faltar, hacia atrás desde hoy
+function racha() {
+  const conFalta = new Set(datos.faltas.map(f => f.fecha));
+  const pasados = LECTIVOS.filter(d => d <= hoyISO());
+  let n = 0;
+  for (let i = pasados.length - 1; i >= 0 && !conFalta.has(pasados[i]); i--) n++;
+  return n;
+}
+
+// ── Interfaz ──────────────────────────────────────────────────
+
+let toastT;
+function toast(msg, alert) {
+  const t = $("toast");
+  t.textContent = msg;
+  t.className = "toast show" + (alert ? " alert" : "");
+  clearTimeout(toastT);
+  toastT = setTimeout(() => t.classList.remove("show"), 2200);
+}
+
+function peor() {
+  let res = null;
+  MODULOS.forEach(m => { const p = faltasDe(m.id) / m.max; if (faltasDe(m.id) && (!res || p > res.p)) res = { m, p }; });
+  return res;
+}
+
+function renderHero() {
+  const riesgo = MODULOS.filter(m => faltasDe(m.id) / m.max >= .75).length;
+  const retrasos = Object.values(datos.retrasos).reduce((a, b) => a + b, 0);
+  const p = peor();
+  $("stats").innerHTML = `
+    <div><b>${total()}</b><span>Faltas</span></div>
+    <div><b>${riesgo}</b><span>Módulos en riesgo</span></div>
+    <div><b>${retrasos}</b><span>Retrasos</span></div>
+    <div class="full">Módulo más comprometido: <strong>${p ? `${p.m.nombre} (${Math.round(p.p * 100)}%)` : "ninguno"}</strong></div>`;
+}
+
+function renderProyeccion() {
+  const filas = MODULOS.map(m => ({ m, f: faltasDe(m.id), pr: proyeccion(faltasDe(m.id), m.max) }));
+  const orden = { perdida: 0, limite: 1, agota: 2, justo: 3, ok: 4, cero: 5, pocos: 6, fin: 7 };
+  filas.sort((a, b) => orden[a.pr.tipo] - orden[b.pr.tipo]
+    || (a.pr.fecha || "").localeCompare(b.pr.fecha || "")
+    || (b.pr.final ?? b.f) / b.m.max - (a.pr.final ?? a.f) / a.m.max);
+
+  const hoy = hoyISO(), fin = LECTIVOS.at(-1);
+  const quedan = LECTIVOS.filter(d => d > hoy).length, hechos = LECTIVOS.length - quedan;
+  const semanas = (hechos / 5).toLocaleString("es-ES", { maximumFractionDigits: 1 });
+  $("proySub").textContent = hoy < LECTIVOS[0]
+    ? `Las clases empiezan el ${fechaLarga(LECTIVOS[0])}.`
+    : quedan
+      ? `Con el ritmo que llevas desde el ${fechaLarga(LECTIVOS[0])} (${hechos} días de clase, unas ${semanas} semanas), repetido en los ${quedan} días de clase que quedan hasta el ${fechaLarga(fin)}.`
+      : `Las clases terminaron el ${fechaLarga(fin)}.`;
+
+  const agotan = filas.filter(r => r.pr.tipo === "agota");
+  const sinMargen = filas.filter(r => r.pr.tipo === "limite" || r.pr.tipo === "perdida");
+  let ico, cls = "", txt, extra = "";
+  if (filas[0].pr.tipo === "fin") {
+    ico = "🎓"; txt = "El curso ya ha terminado: no hay nada que proyectar.";
+  } else if (agotan.length) {
+    const r = agotan[0];
+    ico = "🚨"; cls = "mal";
+    txt = `A este ritmo te quedas sin margen en <strong>${r.m.nombre}</strong> ${cuando(r.pr.fecha)}.`;
+    extra = `Llevas ${r.f} ${r.f === 1 ? "falta" : "faltas"} en ${semanas} semanas de clase: ${ritmoTxt(r.pr.semanal)}.`;
+    if (agotan.length > 1) extra += ` También en ${agotan.slice(1).map(r => `${r.m.nombre} (${cuando(r.pr.fecha).replace(/^a /, "")})`).join(", ")}.`;
+  } else if (sinMargen.length) {
+    ico = "⚠️"; cls = "mal";
+    txt = `Ya no te queda margen en <strong>${sinMargen.map(r => r.m.nombre).join(", ")}</strong>.`;
+    extra = "En el resto de módulos no llegarías al límite a este ritmo.";
+  } else if (filas.every(r => r.pr.tipo === "cero")) {
+    ico = "😇"; cls = "bien"; txt = "Sin faltas por ahora: vas perfecto.";
+  } else if (filas.some(r => r.pr.tipo === "pocos")) {
+    ico = "⏳"; txt = "Todavía no hay suficientes días de clase para calcular un ritmo fiable.";
+  } else {
+    ico = "✅"; cls = "bien";
+    txt = "A este ritmo llegas a final de curso sin quedarte sin margen en ningún módulo.";
+    const r = filas.find(r => r.pr.tipo === "justo") || filas.find(r => r.pr.tipo === "ok");
+    if (r) extra = `El más justo: ${r.m.nombre} (${ritmoTxt(r.pr.semanal)}), acabarías con ~${r.pr.final} de ${r.m.max} faltas.`;
+  }
+  $("proyTop").className = "proy-top " + cls;
+  $("proyTop").innerHTML = `<span class="ico" aria-hidden="true">${ico}</span><p>${txt}${extra ? `<small>${extra}</small>` : ""}</p>`;
+
+  const texto = { perdida: "Evaluación perdida", limite: "Sin margen ya", cero: "Sin faltas", pocos: "Faltan datos", fin: "Curso terminado" };
+  const claseFila = { perdida: "mal", limite: "mal", agota: "mal", justo: "justo", ok: "bien", cero: "bien" };
+  $("proyList").innerHTML = filas.map(({ m, f, pr }) => {
+    const estadoTxt = pr.tipo === "agota" ? `Sin margen ${cuando(pr.fecha)}`
+      : pr.tipo === "justo" || pr.tipo === "ok" ? `~${pr.final} de ${m.max} al final` : texto[pr.tipo];
+    const prev = Math.min(100, ((pr.final ?? f) / m.max) * 100), ya = Math.min(100, (f / m.max) * 100);
+    return `
+      <div class="pr ${claseFila[pr.tipo] || ""}">
+        <div class="pr-top"><b>${m.nombre}</b><span>${estadoTxt}${pr.semanal ? ` · ${ritmoTxt(pr.semanal)}` : ""}</span></div>
+        <div class="pbar"><div class="prev" style="width:${prev}%"></div><div class="ya" style="width:${ya}%"></div></div>
+      </div>`;
+  }).join("");
+}
+
+function renderEstadisticas() {
+  const p = peor();
+  $("stKpis").innerHTML = `
+    <div class="kpi"><span>Mis faltas totales</span><b>${total()}</b></div>
+    <div class="kpi"><span>Módulo más comprometido</span><b class="txt">${p ? `${p.m.nombre} · ${Math.round(p.p * 100)}%` : "Ninguno"}</b></div>
+    <div class="kpi"><span>Días seguidos sin faltar</span><b>${racha()}</b></div>`;
+
+  // Faltas por mes del curso (hasta el mes actual)
+  const meses = [];
+  const hasta = (hoyISO() < LECTIVOS.at(-1) ? hoyISO() : LECTIVOS.at(-1)).slice(0, 7);
+  for (let d = fechaUTC(CALENDARIO.inicio.slice(0, 8) + "01"); d.toISOString().slice(0, 7) <= hasta; d.setUTCMonth(d.getUTCMonth() + 1))
+    meses.push({ clave: d.toISOString().slice(0, 7), nombre: d.toLocaleDateString("es-ES", { month: "short", timeZone: "UTC" }).replace(".", ""), n: 0 });
+  datos.faltas.forEach(f => { const m = meses.find(m => m.clave === f.fecha.slice(0, 7)); if (m) m.n++; });
+  const max = Math.max(1, ...meses.map(m => m.n));
+  $("stBarras").hidden = total() === 0;
+  $("stSinFaltas").hidden = total() > 0;
+  $("stBarras").setAttribute("aria-label", meses.map(m => `${m.nombre}: ${m.n}`).join(", "));
+  $("stBarras").innerHTML = meses.map(m => `
+    <div class="barra${m.n ? "" : " cero"}" title="${m.nombre}: ${m.n} ${m.n === 1 ? "falta" : "faltas"}">
+      <b>${m.n}</b><div class="col"><i style="height:${m.n / max * 100}%"></i></div><span>${m.nombre}</span>
+    </div>`).join("");
+
+  // Lo que te queda, de menos a más margen
+  $("stMargen").innerHTML = MODULOS.map(m => ({ m, quedan: m.max - faltasDe(m.id) }))
+    .sort((a, b) => a.quedan - b.quedan || a.quedan / a.m.max - b.quedan / b.m.max)
+    .map(({ m, quedan }) => {
+      const cls = quedan <= 0 ? "sin" : quedan <= m.max * .25 ? "justo" : "";
+      const txt = quedan < 0 ? `Pasado por ${-quedan}` : quedan === 0 ? "Sin margen" : `Quedan ${quedan}`;
+      return `<li class="${cls}"><span>${m.nombre}</span><b>${txt}</b></li>`;
+    }).join("");
+}
+
+function lineaProy(f, m) {
+  const pr = proyeccion(f, m.max);
+  if (pr.tipo === "agota") return `<div class="proy mal">📈 Sin margen ${cuando(pr.fecha)}</div>`;
+  if (pr.tipo === "justo") return `<div class="proy justo">📈 Acabarías con ~${pr.final} de ${m.max}</div>`;
+  if (pr.tipo === "ok") return `<div class="proy">📈 Acabarías con ~${pr.final} de ${m.max}</div>`;
+  return "";
+}
+
+function renderGrid() {
+  const cont = $("grid");
+  cont.innerHTML = "";
+  MODULOS.forEach(m => {
+    const f = faltasDe(m.id), e = estado(f, m.max);
+    const el = document.createElement("div");
+    el.className = "mod " + e.cls;
+    el.innerHTML = `
+      <div class="mtop">
+        <div class="icon">${m.id}</div>
+        <div class="mh">${m.horas} h · ${m.horasSemana} h/sem<br>límite ${m.max}</div>
+      </div>
+      <div class="mname">${m.nombre}</div>
+      <div class="st">${e.txt}</div>${lineaProy(f, m)}
+      <div class="bar"><div class="fill" style="width:${Math.min(100, f / m.max * 100)}%"></div></div>
+      <div class="mbot">
+        <div class="cnt">${f}<span> / ${m.max}</span></div>
+        <div class="btns">
+          <button type="button" aria-label="Quitar falta">−</button>
+          <button type="button" class="plus" aria-label="Añadir falta">+</button>
+        </div>
+      </div>
+      <div class="late">
+        <div class="lcnt">Retrasos <b>${datos.retrasos[m.id]}</b></div>
+        <div class="btns sm">
+          <button type="button" aria-label="Quitar retraso">−</button>
+          <button type="button" class="plus" aria-label="Añadir retraso">+</button>
+        </div>
+      </div>`;
+    const [menos, mas, menosR, masR] = el.querySelectorAll(".btns button");
+    menos.onclick = () => quitarFalta(m);
+    mas.onclick = () => pedirFecha(m);
+    menosR.onclick = () => cambiarRetraso(m, -1);
+    masR.onclick = () => cambiarRetraso(m, 1);
+    if (ultimo && ultimo.id === m.id) el.querySelector(ultimo.tipo === "faltas" ? ".cnt" : ".lcnt b").classList.add("pop");
+    cont.appendChild(el);
+  });
+  ultimo = null;
+}
+
+function render() { renderHero(); renderProyeccion(); renderEstadisticas(); renderGrid(); }
+
+// ── Acciones ──────────────────────────────────────────────────
+
+function apuntarFalta(m, fecha) {
+  datos.faltas.push({ id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), modulo: m.id, fecha });
+  guardar();
+  ultimo = { tipo: "faltas", id: m.id };
+  render();
+  const f = faltasDe(m.id);
+  if (f === m.max) toast(`Límite alcanzado en ${m.nombre}`, true);
+  else if (f > m.max) toast(`Has perdido la evaluación continua en ${m.nombre}`, true);
+  else if (f === Math.ceil(m.max * .75)) toast(`${m.nombre} se acerca al límite`);
+  else toast(`Falta apuntada: ${fechaUTC(fecha).toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" })}`);
+}
+
+// Quita la falta más reciente de ese módulo
+function quitarFalta(m) {
+  const mias = datos.faltas.filter(f => f.modulo === m.id).sort((a, b) => b.fecha.localeCompare(a.fecha) || b.id.localeCompare(a.id));
+  if (!mias.length) return;
+  datos.faltas = datos.faltas.filter(f => f !== mias[0]);
+  guardar();
+  ultimo = { tipo: "faltas", id: m.id };
+  render();
+}
+
+function cambiarRetraso(m, d) {
+  const v = datos.retrasos[m.id] + d;
+  if (v < 0) return;
+  datos.retrasos[m.id] = v;
+  guardar();
+  ultimo = { tipo: "retrasos", id: m.id };
+  render();
+}
+
+// ── Elegir el día de la falta ────────────────────────────────
+
+let fechaModulo = null;
+const diaCorto = iso => fechaUTC(iso).toLocaleDateString("es-ES", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" }).replace(/\./g, "");
+
+function pedirFecha(m) {
+  fechaModulo = m;
+  const dias = LECTIVOS.filter(d => d <= hoyISO()), input = $("fFecha").elements.fecha;
+  $("fechaSub").textContent = m.nombre;
+  $("fechaMsg").textContent = "";
+  input.min = CALENDARIO.inicio;
+  input.max = hoyISO();
+  input.value = dias.at(-1) || hoyISO();
+  $("fechaRapidas").innerHTML = dias.slice(-4).reverse().map(f =>
+    `<button type="button" data-fecha="${f}">${f === hoyISO() ? "Hoy" : diaCorto(f)}</button>`).join("");
+  marcarRapida();
+  $("fechaModal").hidden = false;
+  $("fechaRapidas").querySelector("button")?.focus();
+}
+function marcarRapida() {
+  const v = $("fFecha").elements.fecha.value;
+  $("fechaRapidas").querySelectorAll("button").forEach(b => b.classList.toggle("on", b.dataset.fecha === v));
+}
+function cerrarFecha() { $("fechaModal").hidden = true; fechaModulo = null; }
+
+$("fechaRapidas").onclick = ev => {
+  const f = ev.target.closest("[data-fecha]")?.dataset.fecha;
+  if (f) { $("fFecha").elements.fecha.value = f; marcarRapida(); $("fechaMsg").textContent = ""; }
+};
+$("fFecha").elements.fecha.oninput = () => { marcarRapida(); $("fechaMsg").textContent = ""; };
+$("fechaCerrar").onclick = cerrarFecha;
+$("fechaModal").onclick = ev => { if (ev.target === $("fechaModal")) cerrarFecha(); };
+document.addEventListener("keydown", ev => { if (ev.key === "Escape") cerrarFecha(); });
+$("fFecha").onsubmit = ev => {
+  ev.preventDefault();
+  const m = fechaModulo, f = ev.target.elements.fecha.value;
+  const msg = t => { $("fechaMsg").textContent = t; };
+  if (!m) return;
+  if (!f) return msg("Elige una fecha");
+  if (f > hoyISO()) return msg("No puedes apuntar una falta de un día que todavía no ha llegado");
+  if (f < CALENDARIO.inicio) return msg("Esa fecha es anterior al inicio de las clases");
+  if (!LECTIVOS.includes(f)) return msg("Ese día no hubo clase (fin de semana, festivo o vacaciones)");
+  cerrarFecha();
+  apuntarFalta(m, f);
+};
+
+// ── Datos: exportar, importar, borrar ────────────────────────
+
+$("exportar").onclick = () => {
+  const blob = new Blob([JSON.stringify(datos, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `faltas-automocion-${hoyISO()}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+};
+$("importar").onclick = () => $("fileInput").click();
+$("fileInput").onchange = ev => {
+  const file = ev.target.files[0];
+  ev.target.value = "";
+  if (!file) return;
+  const r = new FileReader();
+  r.onload = () => {
+    let nuevo;
+    try { nuevo = normalizar(JSON.parse(r.result)); } catch (e) { return toast("Archivo no válido", true); }
+    if (!confirm(`Esto sustituirá tus datos por los del archivo (${nuevo.faltas.length} faltas). ¿Continuar?`)) return;
+    datos = nuevo; guardar(); render(); toast("Datos importados");
+  };
+  r.readAsText(file);
+};
+$("reset").onclick = () => {
+  if (!confirm("¿Borrar todas las faltas y retrasos? Esto no se puede deshacer.")) return;
+  datos = vacio(); guardar(); render(); toast("Datos borrados");
+};
+
+// Si se abre en otra pestaña a la vez, se mantienen sincronizadas
+addEventListener("storage", ev => { if (ev.key === CLAVE) { datos = cargar(); render(); } });
+
+render();
+</script>
+</body>
+</html>

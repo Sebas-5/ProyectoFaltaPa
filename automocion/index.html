@@ -351,6 +351,17 @@ const CALENDARIO = {
   vacaciones: [["2026-12-22", "2027-01-07"], ["2027-03-22", "2027-03-26"]]   // Navidad y Semana Santa
 };
 
+// Sesiones de cada módulo por día de la semana: [lunes, martes, miércoles, jueves, viernes]
+const HORARIO = {
+  MOT: [1, 2, 2, 0, 3],
+  ELE: [0, 2, 2, 4, 0],
+  TRA: [2, 2, 0, 0, 3],
+  DIG: [2, 0, 0, 0, 0],
+  ING: [1, 0, 1, 0, 0],
+  IPE: [0, 0, 1, 2, 0]
+};
+const DIAS_SEMANA = ["lunes", "martes", "miércoles", "jueves", "viernes"];
+
 const CLAVE = "faltas_automocion_v1";   // dónde se guardan los datos en el navegador
 
 // ─────────────────────────────────────────────────────────────
@@ -654,11 +665,13 @@ function cambiarRetraso(m, d) {
 // ── Elegir el día de la falta ────────────────────────────────
 
 let fechaModulo = null;
+const diaSemana = iso => fechaUTC(iso).getUTCDay() - 1;   // 0 = lunes … 4 = viernes
+const hayClase = (m, iso) => HORARIO[m.id][diaSemana(iso)] > 0;
 const diaCorto = iso => fechaUTC(iso).toLocaleDateString("es-ES", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" }).replace(/\./g, "");
 
 function pedirFecha(m) {
   fechaModulo = m;
-  const dias = LECTIVOS.filter(d => d <= hoyISO()), input = $("fFecha").elements.fecha;
+  const dias = LECTIVOS.filter(d => d <= hoyISO() && hayClase(m, d)), input = $("fFecha").elements.fecha;
   $("fechaSub").textContent = m.nombre;
   $("fechaMsg").textContent = "";
   input.min = CALENDARIO.inicio;
@@ -693,6 +706,7 @@ $("fFecha").onsubmit = ev => {
   if (f > hoyISO()) return msg("No puedes apuntar una falta de un día que todavía no ha llegado");
   if (f < CALENDARIO.inicio) return msg("Esa fecha es anterior al inicio de las clases");
   if (!LECTIVOS.includes(f)) return msg("Ese día no hubo clase (fin de semana, festivo o vacaciones)");
+  if (!hayClase(m, f)) return msg(`Los ${DIAS_SEMANA[diaSemana(f)]} no hay clase de ${m.nombre}`);
   cerrarFecha();
   apuntarFalta(m, f);
 };

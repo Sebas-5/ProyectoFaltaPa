@@ -131,3 +131,19 @@ Firebase Hosting, Netlify, Hostinger…
 
 Edita los arrays `PERSONAS` y `MODULOS` en `index.html` y añade los nuevos nombres o
 ids también en `database.rules.json`. Una persona nueva necesita además su propio código en la regla de `duenos` (y vuelve a publicar las reglas).
+
+## Versión de Automoción (`automocion/`)
+
+`automocion/index.html` es una página aparte para el ciclo de Automoción (un solo
+usuario, sin ranking ni muro). Tiene su propio horario (`HORARIO`) y calendario.
+
+- Con `FIREBASE_CONFIG = null` los datos se guardan solo en el navegador.
+- Para guardarlos en la nube usa **un proyecto de Firebase distinto** al de Faltas 2DAM
+  (así no comparte reglas, usuarios ni datos):
+  1. Crea el proyecto, activa **Realtime Database** y en *Authentication* el
+     proveedor **Google**. Añade `sebas-5.github.io` en *Dominios autorizados*.
+  2. Publica en *Realtime Database → Reglas* el contenido de
+     `automocion/database.rules.json` (no lleva códigos secretos).
+  3. Pega la configuración de la app web en `FIREBASE_CONFIG`.
+- Cada cuenta de Google solo puede leer y escribir `automocion/{su uid}`. Las faltas
+  que hubiera en el navegador se suben solas la primera vez que se entra.

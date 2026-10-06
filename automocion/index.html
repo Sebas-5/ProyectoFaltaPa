@@ -173,6 +173,15 @@
   .cerrar { position: absolute; top: 14px; right: 16px; background: none; border: none; color: var(--muted); font-size: 1.4rem; cursor: pointer; line-height: 1; }
   .cerrar:hover { color: var(--text); }
 
+  /* INICIO DE SESIÓN (solo con base de datos) */
+  .login { position: fixed; inset: 0; z-index: 40; background: var(--bg); display: grid; place-items: center; padding: 16px; overflow-y: auto; }
+  .login .card { text-align: center; }
+  .login .logo { justify-content: center; margin-bottom: 18px; }
+  .login .cargando { color: var(--muted); font-size: .85rem; margin: 0; }
+  .offline { position: fixed; top: 0; left: 0; right: 0; z-index: 35; background: var(--warn); color: #1c1a21; text-align: center; font-size: .78rem; font-weight: 500; padding: 6px 16px; }
+  .salir { background: transparent; border: 1.5px solid var(--border); color: var(--text); border-radius: 999px; padding: 8px 16px; font: inherit; font-size: .8rem; cursor: pointer; }
+  .salir:hover { border-color: var(--acento); color: var(--acento); }
+
   /* PIE */
   footer { background: var(--acento); color: #fff; margin-top: 90px; position: relative; z-index: 1; }
   .fwrap { max-width: 1080px; margin: 0 auto; padding: 44px 24px 36px; display: grid; grid-template-columns: 1.3fr 1fr 1fr; gap: 30px; }
@@ -225,6 +234,7 @@
       <a href="#proyeccion">Proyección</a>
       <a href="#estadisticas">Estadísticas</a>
       <a class="pill" href="#modulos">Apuntar falta</a>
+      <button class="salir" id="salir" type="button" hidden>Salir</button>
     </div>
   </nav>
 
@@ -232,7 +242,7 @@
     <div>
       <div class="over">Curso 2026 / 2027</div>
       <h1>Control de <span class="serif">Faltas</span><br>Automoción</h1>
-      <p class="lead">Apunta tus faltas con su fecha, mira cuánto margen te queda en cada módulo y a qué ritmo vas. Todo se guarda en este navegador.</p>
+      <p class="lead">Apunta tus faltas con su fecha, mira cuánto margen te queda en cada módulo y a qué ritmo vas. <span id="dondeHero">Todo se guarda en este navegador.</span></p>
       <div class="cta">
         <a class="pill" href="#modulos">Apuntar falta</a>
         <a class="pill ghost" href="#proyeccion">A este ritmo…</a>
@@ -287,7 +297,7 @@
   <div class="fwrap">
     <div>
       <h4>Faltas Automoción</h4>
-      <p>Los datos se guardan solo en este navegador. Exporta el archivo de vez en cuando para tener una copia o pasarlos a otro dispositivo.</p>
+      <p id="dondeFooter">Los datos se guardan solo en este navegador. Exporta el archivo de vez en cuando para tener una copia o pasarlos a otro dispositivo.</p>
     </div>
     <div>
       <h4>Menú</h4>
@@ -310,6 +320,21 @@
 </footer>
 
 <div class="toast" id="toast" role="status"></div>
+<div class="offline" id="offline" hidden>Sin conexión · los cambios se guardarán al volver la red (no cierres la página)</div>
+
+<!-- Inicio de sesión: solo aparece si hay base de datos configurada (FIREBASE_CONFIG) -->
+<div class="login" id="login" hidden>
+  <div class="card">
+    <div class="logo"><i></i>AUTOMOCIÓN</div>
+    <h2>Faltas <span class="serif">Automoción</span></h2>
+    <p class="cargando" id="loginCargando">Cargando…</p>
+    <div id="loginForm" hidden>
+      <p class="sub">Entra con tu cuenta de Google para guardar tus faltas y verlas en cualquier dispositivo.</p>
+      <button class="pill" id="entrarGoogle" type="button">Entrar con Google</button>
+      <p class="msg" id="loginMsg"></p>
+    </div>
+  </div>
+</div>
 
 <!-- Ventana para elegir el día de la falta al pulsar + -->
 <div class="modal" id="fechaModal" hidden>
@@ -351,7 +376,31 @@ const CALENDARIO = {
   vacaciones: [["2026-12-22", "2027-01-07"], ["2027-03-22", "2027-03-26"]]   // Navidad y Semana Santa
 };
 
+// Sesiones de cada módulo por día de la semana: [lunes, martes, miércoles, jueves, viernes]
+const HORARIO = {
+  MOT: [1, 2, 2, 0, 3],
+  ELE: [0, 2, 2, 4, 0],
+  TRA: [2, 2, 0, 0, 3],
+  DIG: [2, 0, 0, 0, 0],
+  ING: [1, 0, 1, 0, 0],
+  IPE: [0, 0, 1, 2, 0]
+};
+const DIAS_SEMANA = ["lunes", "martes", "miércoles", "jueves", "viernes"];
+
 const CLAVE = "faltas_automocion_v1";   // dónde se guardan los datos en el navegador
+
+// Base de datos (opcional). Si se deja en null, los datos se guardan solo en este
+// navegador. Para guardarlos en Firebase, pega aquí la configuración de la app web
+// del proyecto (Consola de Firebase → Configuración del proyecto → Tus apps).
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyDsV7hI2_3prIXelywx4QrOic5jpaohM50",
+  authDomain: "faltas-automocion.firebaseapp.com",
+  databaseURL: "https://faltas-automocion-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "faltas-automocion",
+  storageBucket: "faltas-automocion.firebasestorage.app",
+  messagingSenderId: "1023011870283",
+  appId: "1:1023011870283:web:74634bb468187d67e15fce"
+};
 
 // ─────────────────────────────────────────────────────────────
 
@@ -387,25 +436,41 @@ function cuando(iso) {
 function vacio() {
   return { faltas: [], retrasos: Object.fromEntries(MODULOS.map(m => [m.id, 0])) };
 }
+const nuevoId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 function normalizar(obj) {
   const d = vacio();
   if (!obj || typeof obj !== "object") return d;
   if (Array.isArray(obj.faltas)) obj.faltas.forEach(f => {
     if (f && MODULOS.some(m => m.id === f.modulo) && /^\d{4}-\d{2}-\d{2}$/.test(f.fecha))
-      d.faltas.push({ id: String(f.id || Math.random().toString(36).slice(2)), modulo: f.modulo, fecha: f.fecha });
+      d.faltas.push({ id: /^[A-Za-z0-9_-]{1,40}$/.test(f.id) ? f.id : nuevoId(), modulo: f.modulo, fecha: f.fecha });
   });
   MODULOS.forEach(m => { const v = obj.retrasos?.[m.id]; if (Number.isInteger(v) && v >= 0) d.retrasos[m.id] = v; });
   return d;
 }
-function cargar() {
-  try { return normalizar(JSON.parse(localStorage.getItem(CLAVE))); } catch (e) { return vacio(); }
+// Con base de datos, el navegador guarda una copia por cuenta (CLAVE_uid)
+let clave = CLAVE;
+function cargar(k = clave) {
+  try { return normalizar(JSON.parse(localStorage.getItem(k))); } catch (e) { return vacio(); }
 }
 function guardar() {
-  try { localStorage.setItem(CLAVE, JSON.stringify(datos)); }
-  catch (e) { toast("No se pudo guardar en este navegador", true); }
+  try { localStorage.setItem(clave, JSON.stringify(datos)); }
+  catch (e) { if (!nube) toast("No se pudo guardar en este navegador", true); }
 }
 
-let datos = cargar();
+// En la base de datos: automocion/{uid} = { faltas: { id: { modulo, fecha } }, retrasos: { MOT: 0, … } }
+let nube = null;   // { db, uid, api } mientras hay sesión iniciada
+const aNube = d => ({ faltas: Object.fromEntries(d.faltas.map(f => [f.id, { modulo: f.modulo, fecha: f.fecha }])), retrasos: d.retrasos });
+const desdeNube = v => normalizar({ faltas: Object.entries(v?.faltas || {}).map(([id, f]) => ({ id, ...f })), retrasos: v?.retrasos });
+// Escribe en automocion/{uid}/ruta (null = borrar). Sin base de datos no hace nada.
+function subir(ruta, valor) {
+  if (!nube) return Promise.resolve();
+  const { ref, set, remove } = nube.api;
+  const r = ref(nube.db, `automocion/${nube.uid}${ruta ? "/" + ruta : ""}`);
+  return (valor === null ? remove(r) : set(r, valor))
+    .catch(e => { toast("No se pudo guardar en la base de datos", true); throw e; });
+}
+
+let datos = FIREBASE_CONFIG ? vacio() : cargar();
 let ultimo = null;   // { tipo, id } del contador que hay que animar
 
 const faltasDe = id => datos.faltas.filter(f => f.modulo === id).length;
@@ -621,8 +686,10 @@ function render() { renderHero(); renderProyeccion(); renderEstadisticas(); rend
 // ── Acciones ──────────────────────────────────────────────────
 
 function apuntarFalta(m, fecha) {
-  datos.faltas.push({ id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), modulo: m.id, fecha });
+  const id = nuevoId();
+  datos.faltas.push({ id, modulo: m.id, fecha });
   guardar();
+  subir(`faltas/${id}`, { modulo: m.id, fecha }).catch(() => {});
   ultimo = { tipo: "faltas", id: m.id };
   render();
   const f = faltasDe(m.id);
@@ -638,6 +705,7 @@ function quitarFalta(m) {
   if (!mias.length) return;
   datos.faltas = datos.faltas.filter(f => f !== mias[0]);
   guardar();
+  subir(`faltas/${mias[0].id}`, null).catch(() => {});
   ultimo = { tipo: "faltas", id: m.id };
   render();
 }
@@ -647,6 +715,7 @@ function cambiarRetraso(m, d) {
   if (v < 0) return;
   datos.retrasos[m.id] = v;
   guardar();
+  subir(`retrasos/${m.id}`, v).catch(() => {});
   ultimo = { tipo: "retrasos", id: m.id };
   render();
 }
@@ -654,11 +723,13 @@ function cambiarRetraso(m, d) {
 // ── Elegir el día de la falta ────────────────────────────────
 
 let fechaModulo = null;
+const diaSemana = iso => fechaUTC(iso).getUTCDay() - 1;   // 0 = lunes … 4 = viernes
+const hayClase = (m, iso) => HORARIO[m.id][diaSemana(iso)] > 0;
 const diaCorto = iso => fechaUTC(iso).toLocaleDateString("es-ES", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" }).replace(/\./g, "");
 
 function pedirFecha(m) {
   fechaModulo = m;
-  const dias = LECTIVOS.filter(d => d <= hoyISO()), input = $("fFecha").elements.fecha;
+  const dias = LECTIVOS.filter(d => d <= hoyISO() && hayClase(m, d)), input = $("fFecha").elements.fecha;
   $("fechaSub").textContent = m.nombre;
   $("fechaMsg").textContent = "";
   input.min = CALENDARIO.inicio;
@@ -693,6 +764,7 @@ $("fFecha").onsubmit = ev => {
   if (f > hoyISO()) return msg("No puedes apuntar una falta de un día que todavía no ha llegado");
   if (f < CALENDARIO.inicio) return msg("Esa fecha es anterior al inicio de las clases");
   if (!LECTIVOS.includes(f)) return msg("Ese día no hubo clase (fin de semana, festivo o vacaciones)");
+  if (!hayClase(m, f)) return msg(`Los ${DIAS_SEMANA[diaSemana(f)]} no hay clase de ${m.nombre}`);
   cerrarFecha();
   apuntarFalta(m, f);
 };
@@ -718,18 +790,95 @@ $("fileInput").onchange = ev => {
     try { nuevo = normalizar(JSON.parse(r.result)); } catch (e) { return toast("Archivo no válido", true); }
     if (!confirm(`Esto sustituirá tus datos por los del archivo (${nuevo.faltas.length} faltas). ¿Continuar?`)) return;
     datos = nuevo; guardar(); render(); toast("Datos importados");
+    subir("", aNube(datos)).catch(() => {});
   };
   r.readAsText(file);
 };
 $("reset").onclick = () => {
   if (!confirm("¿Borrar todas las faltas y retrasos? Esto no se puede deshacer.")) return;
   datos = vacio(); guardar(); render(); toast("Datos borrados");
+  subir("", null).catch(() => {});
 };
 
 // Si se abre en otra pestaña a la vez, se mantienen sincronizadas
-addEventListener("storage", ev => { if (ev.key === CLAVE) { datos = cargar(); render(); } });
+// (con base de datos ya se sincronizan solas a través de Firebase)
+addEventListener("storage", ev => { if (!FIREBASE_CONFIG && ev.key === CLAVE) { datos = cargar(); render(); } });
+
+// ── Base de datos (solo si hay FIREBASE_CONFIG) ──────────────
+
+async function iniciarNube() {
+  $("login").hidden = false;
+  const SDK = "https://www.gstatic.com/firebasejs/10.12.2/";
+  let A, D, app;
+  try {
+    const [F, auth, db] = await Promise.all(["app", "auth", "database"].map(x => import(`${SDK}firebase-${x}.js`)));
+    A = auth; D = db; app = F.initializeApp(FIREBASE_CONFIG);
+  } catch (e) {
+    $("loginCargando").textContent = "No se pudo conectar. Revisa la conexión y recarga la página.";
+    return;
+  }
+  const auth = A.getAuth(app), db = D.getDatabase(app);
+  $("dondeHero").textContent = "Se guarda en tu cuenta y lo ves en cualquier dispositivo.";
+  $("dondeFooter").textContent = "Los datos se guardan en tu cuenta de Google y se sincronizan entre tus dispositivos. También puedes exportarlos a un archivo como copia de seguridad.";
+
+  $("entrarGoogle").onclick = async () => {
+    const google = new A.GoogleAuthProvider();
+    $("loginMsg").textContent = "";
+    try { await A.signInWithPopup(auth, google); }
+    catch (e) {
+      if (e.code === "auth/popup-blocked" || e.code === "auth/operation-not-supported-in-this-environment") return A.signInWithRedirect(auth, google);
+      if (e.code !== "auth/popup-closed-by-user" && e.code !== "auth/cancelled-popup-request")
+        $("loginMsg").textContent = "No se pudo iniciar sesión. Inténtalo otra vez.";
+    }
+  };
+  $("salir").onclick = () => { if (confirm("¿Cerrar sesión?")) A.signOut(auth); };
+
+  const avisoRed = () => { $("offline").hidden = !nube || navigator.onLine; };
+  addEventListener("online", avisoRed);
+  addEventListener("offline", avisoRed);
+
+  let parar = null;
+  A.onAuthStateChanged(auth, user => {
+    if (parar) { parar(); parar = null; }
+    nube = null;
+    $("loginCargando").hidden = true;
+    if (!user) {
+      clave = CLAVE; datos = vacio(); render();
+      $("login").hidden = false; $("loginForm").hidden = false; $("salir").hidden = true;
+      avisoRed();
+      return;
+    }
+    // Mientras llegan los datos se enseña la última copia guardada de esta cuenta
+    clave = `${CLAVE}_${user.uid}`;
+    datos = cargar(); render();
+    $("login").hidden = true; $("salir").hidden = false;
+    $("salir").title = user.email || "";
+    nube = { db, uid: user.uid, api: D };
+    avisoRed();
+    let primera = true;
+    parar = D.onValue(D.ref(db, `automocion/${user.uid}`), snap => {
+      // La primera vez, si la cuenta está vacía y en este navegador había faltas
+      // de antes de tener base de datos, se suben a la cuenta
+      if (primera && !snap.exists()) {
+        const antes = cargar(CLAVE);
+        if (antes.faltas.length || Object.values(antes.retrasos).some(Boolean)) {
+          primera = false;
+          datos = antes; guardar(); render();
+          subir("", aNube(antes)).then(() => {
+            try { localStorage.removeItem(CLAVE); } catch (e) {}
+            toast("Tus faltas de este navegador se han guardado en tu cuenta");
+          }).catch(() => {});
+          return;
+        }
+      }
+      primera = false;
+      datos = desdeNube(snap.val()); guardar(); render();
+    }, () => toast("No se pudieron leer tus datos", true));
+  });
+}
 
 render();
+if (FIREBASE_CONFIG) iniciarNube();
 </script>
 </body>
 </html>

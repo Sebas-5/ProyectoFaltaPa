@@ -493,7 +493,50 @@
   .ver .pill + .pill { margin-top: 10px; }
   .ro .link { font-size: .8rem; margin-left: 6px; }
 
+  /* LOGROS */
+  .lg-resumen { max-width: 420px; margin: 0 auto 30px; text-align: center; font-size: .85rem; color: var(--muted); }
+  .lg-resumen b { color: var(--text); font-size: 1.1rem; }
+  .lg-resumen .lg-barra { margin-top: 10px; }
+  .lg-grupo { font-weight: 500; font-size: 1rem; margin: 30px 0 14px; }
+  .lg-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .lg {
+    position: relative; display: grid; grid-template-columns: 46px minmax(0, 1fr); gap: 12px; align-items: center;
+    border: 1.5px solid var(--border-soft); border-radius: 14px; padding: 14px; background: rgba(19,26,40,.25);
+  }
+  .lg-ico { width: 46px; height: 46px; border-radius: 12px; display: grid; place-items: center; font-size: 1.6rem; background: rgba(243,246,250,.05); filter: grayscale(1); opacity: .45; }
+  .lg b { display: block; font-weight: 500; font-size: .88rem; }
+  .lg span { display: block; font-size: .72rem; color: var(--muted); line-height: 1.45; margin-top: 2px; }
+  .lg em { display: inline-block; margin-top: 6px; font-style: normal; font-size: .62rem; color: var(--muted); border: 1px solid var(--border-soft); border-radius: 999px; padding: 1px 8px; }
+  .lg.ok { border-color: rgba(245,197,66,.55); background: linear-gradient(150deg, rgba(245,197,66,.12), rgba(19,26,40,.35) 65%); }
+  .lg.ok .lg-ico { filter: none; opacity: 1; background: rgba(245,197,66,.15); box-shadow: 0 0 14px rgba(245,197,66,.25); }
+  .lg-barra { display: flex; align-items: center; gap: 8px; margin-top: 7px; font-size: .68rem; color: var(--muted); }
+  .lg-barra i { flex: 1; height: 4px; border-radius: 4px; background: var(--border-soft); overflow: hidden; }
+  .lg-barra i::before { content: ""; display: block; height: 100%; width: var(--p); background: var(--cyan); border-radius: 4px; }
+  .lg-resumen .lg-barra i::before { background: #f5c542; }
+  /* Insignias en el ranking */
+  .rk-logros { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border-soft); font-size: .95rem; line-height: 1; cursor: pointer; }
+  .rk-logros b { font-size: .75rem; font-weight: 600; color: #f5c542; margin-right: 4px; }
+  .rk-logros small { font-size: .7rem; color: var(--muted); }
+  .rk-logros:hover b { text-decoration: underline; }
+  /* Aviso al desbloquear un logro */
+  .logro-pop {
+    position: fixed; top: 18px; left: 50%; z-index: 55; width: min(380px, calc(100% - 32px)); transform: translateX(-50%);
+    display: grid; grid-template-columns: 54px minmax(0, 1fr); gap: 14px; align-items: center; cursor: pointer;
+    background: #131a28; border: 1.5px solid #f5c542; border-radius: 16px; padding: 14px 16px;
+    box-shadow: 0 0 34px rgba(245,197,66,.35); animation: entraLogro .45s cubic-bezier(.2,1.4,.4,1);
+  }
+  .logro-pop .lp-ico { width: 54px; height: 54px; border-radius: 14px; display: grid; place-items: center; font-size: 2rem; background: rgba(245,197,66,.15); }
+  .logro-pop small { display: block; font-size: .68rem; color: #f5c542; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
+  .logro-pop b { display: block; font-weight: 500; margin: 2px 0; }
+  .logro-pop span { display: block; font-size: .75rem; color: var(--muted); }
+  @keyframes entraLogro { from { opacity: 0; transform: translate(-50%, -20px) scale(.85); } }
+  .confeti { position: fixed; inset: 0; z-index: 54; pointer-events: none; overflow: hidden; }
+  .confeti i { position: absolute; top: -16px; width: 8px; height: 14px; border-radius: 2px; animation: caer var(--d) linear var(--r) forwards; }
+  @keyframes caer { to { transform: translate(var(--x), 105vh) rotate(var(--g)); } }
+  @media (prefers-reduced-motion: reduce) { .logro-pop { animation: none; } .confeti { display: none; } }
+
   @media (max-width: 900px) {
+    .lg-grid { grid-template-columns: repeat(2, 1fr); }
     .st-cols { grid-template-columns: 1fr; }
     .hero { grid-template-columns: 1fr; padding-top: 30px; }
     .ranking { grid-template-columns: repeat(2, 1fr); }
@@ -511,6 +554,7 @@
     .post .av { width: 34px; height: 34px; font-size: 1rem; }
     .post-form .cuenta { display: none; }
     .proy-top { padding: 18px; }
+    .lg-grid { grid-template-columns: 1fr; }
     .kpis { grid-template-columns: 1fr 1fr; gap: 10px; }
     .kpis .kpi:last-child { grid-column: 1 / -1; }
     .kpi { padding: 14px; }
@@ -539,6 +583,7 @@
       <a href="#muro" class="muro-link">Muro<span class="punto" id="muroPunto" hidden></span></a>
       <a href="#proyeccion">Proyección</a>
       <a href="#estadisticas">Estadísticas</a>
+      <a href="#logros">Logros</a>
       <a href="#modulos">Módulos</a>
       <button class="user" id="userBtn" title="Mi perfil"><span class="av" id="userAv"></span><span id="userName"></span></button>
       <button class="pill ghost" id="salir">Salir</button>
@@ -617,6 +662,19 @@
     </div>
   </section>
 
+  <section id="logros">
+    <div class="head">
+      <div class="over">Logros</div>
+      <h2>Insignias</h2>
+      <p>Se desbloquean solos con las faltas y los retrasos. Los que pone «mientras dure» se pierden si dejas de cumplirlos.</p>
+    </div>
+    <div class="filtros">
+      <label>Persona <select id="lgPersona" aria-label="Persona de los logros"></select></label>
+    </div>
+    <div class="lg-resumen" id="lgResumen"></div>
+    <div id="lgLista"></div>
+  </section>
+
   <section id="modulos">
     <div class="head">
       <div class="over">Módulos</div>
@@ -657,6 +715,11 @@
   </div>
   <div class="copy">Sebastian · Matías · Ian · Joaquín</div>
 </footer>
+<div class="logro-pop" id="logroPop" role="status" aria-live="polite" hidden>
+  <div class="lp-ico" id="lpIco"></div>
+  <div><small>¡Logro desbloqueado!</small><b id="lpNombre"></b><span id="lpDesc"></span></div>
+</div>
+<div class="confeti" id="confeti" aria-hidden="true"></div>
 <div class="toast" id="toast"></div>
 
 <!-- Aviso de conexión: los cambios hechos sin red se envían al volver -->
@@ -1358,7 +1421,8 @@ function renderRanking() {
       <div class="avatar" title="Ver perfil">${avatar(r.p)}</div>
       <div class="who">${esc(nombre(r.p))}${r.p === yo ? ' <span class="tu">(tú)</span>' : ""}</div>
       <div class="tot">${r.total}<small>faltas</small></div>
-      <div class="det">${det}</div>`;
+      <div class="det">${det}</div>${insignias(r.p)}`;
+    el.querySelector(".rk-logros").onclick = ev => { ev.stopPropagation(); lgPersona = r.p; renderLogros(); $("logros").scrollIntoView(); };
     el.onclick = () => {
       actual = r.p; render();
       $("modulos").scrollIntoView();
@@ -2003,9 +2067,163 @@ function renderEstadisticas() {
 
 $("stPersona").onchange = ev => { stPersona = ev.target.value; renderEstadisticas(); };
 
+// ── Logros ───────────────────────────────────────────────────
+// Se calculan siempre a partir de las faltas (con fecha) y los retrasos; no se guardan
+
+const GRUPOS_LOGROS = [
+  ["asistencia", "😇 Asistencia"], ["goat", "🐐 Los GOAT"], ["faltas", "😈 Faltas"], ["retrasos", "🐢 Retrasos"], ["ranking", "🏆 Grupo"]
+];
+const lunesDe = iso => { const d = fechaUTC(iso); d.setUTCDate(d.getUTCDate() - (d.getUTCDay() + 6) % 7); return d.toISOString().slice(0, 10); };
+// La racha más larga de días de la lista que no cumplen "corta"
+function mejorRacha(dias, corta) {
+  let n = 0, max = 0;
+  dias.forEach(d => { n = corta(d) ? 0 : n + 1; max = Math.max(max, n); });
+  return max;
+}
+const retrasosDe = p => MODULOS.reduce((a, m) => a + datos.retrasos[p][m.id], 0);
+
+function logros(p) {
+  const hoy = hoyISO(), ev = eventos(p), f = id => datos.faltas[p][id];
+  const fechas = new Set(ev.map(e => e.fecha));
+  const pasados = LECTIVOS.filter(d => d.fecha < hoy);   // días de clase ya terminados
+  const faltasEn = id => new Set(ev.filter(e => e.modulo === id).map(e => e.fecha));
+  const lista = [];
+  // n / meta = progreso; mientras = se pierde si deja de cumplirse
+  const add = (grupo, id, icono, titulo, desc, n, meta, mientras = false) =>
+    lista.push({ grupo, id, icono, titulo, desc, n: Math.min(n, meta), meta, ok: n >= meta, mientras });
+
+  // 😇 Asistencia
+  add("asistencia", "dia_limpio", "🌱", "Primer día limpio", "Un día de clase entero sin faltar", pasados.some(d => !fechas.has(d.fecha)) ? 1 : 0, 1);
+  const semanas = new Map();
+  LECTIVOS.forEach(d => { const k = lunesDe(d.fecha); semanas.set(k, [...(semanas.get(k) || []), d.fecha]); });
+  let semana = 0;
+  semanas.forEach(dias => {
+    const hechos = dias.filter(x => x < hoy);
+    if (hechos.some(x => fechas.has(x))) return;
+    semana = Math.max(semana, hechos.length === dias.length && dias.length >= 3 ? 5 : hechos.length);
+  });
+  add("asistencia", "semana", "📅", "Semana perfecta", "Una semana de clase entera sin ninguna falta", semana, 5);
+  add("asistencia", "racha10", "🔥", "Racha de 2 semanas", "10 días de clase seguidos sin faltar", mejorRacha(pasados, d => fechas.has(d.fecha)), 10);
+  const enRiesgo = MODULOS.some(m => f(m.id) / m.max >= .75);
+  add("asistencia", "equilibrado", "⚖️", "Equilibrado", "Pasado el primer mes, ningún módulo en naranja ni en rojo", enRiesgo ? 0 : pasados.length, 20, true);
+
+  // 🐐 El GOAT de cada asignatura: 10 clases seguidas de ese módulo sin faltar
+  MODULOS.forEach(m => {
+    const conFalta = faltasEn(m.id);
+    const dias = pasados.filter(d => HORARIO[m.id][d.dia] > 0);
+    add("goat", "goat_" + m.id, "🐐", `El GOAT de ${m.nombre}`, `10 clases seguidas de ${m.nombre} sin faltar`, mejorRacha(dias, d => conFalta.has(d.fecha)), 10);
+  });
+
+  // 😈 Faltas
+  const porSemana = {}, porDia = {};
+  ev.forEach(e => {
+    porSemana[lunesDe(e.fecha)] = (porSemana[lunesDe(e.fecha)] || 0) + 1;
+    (porDia[e.fecha] ||= new Set()).add(e.modulo);
+  });
+  add("faltas", "fantasma", "👻", "Fantasma", "5 faltas en una misma semana", Math.max(0, ...Object.values(porSemana)), 5);
+  add("faltas", "pacto", "😈", "Pacto con el diablo", "5 faltas en Desarrollo de interfaces", f("DI"), 5);
+  const cerca = MODULOS.filter(m => f(m.id) <= m.max).sort((a, b) => f(b.id) / b.max - f(a.id) / a.max)[0];
+  add("faltas", "limite", "🎲", "Al límite", "Llegar justo al límite de faltas de un módulo sin pasarse", cerca ? f(cerca.id) : 0, cerca ? cerca.max : 1, true);
+  const peor = MODULOS.reduce((a, m) => f(m.id) / m.max > f(a.id) / a.max ? m : a);
+  add("faltas", "rip", "💀", "RIP evaluación continua", "Pasarse del límite de faltas en un módulo", f(peor.id), peor.max + 1);
+  add("faltas", "huracan", "🌪️", "Huracán", "Faltar a 3 módulos distintos el mismo día", Math.max(0, ...Object.values(porDia).map(s => s.size)), 3);
+  const diasDe = n => Object.keys(porDia).filter(x => fechaUTC(x).getUTCDay() === n).length;
+  add("faltas", "lunes", "📆", "Lunes no", "Faltar 3 lunes distintos", diasDe(1), 3);
+  add("faltas", "viernes", "🍻", "Viernes de fiesta", "Faltar 3 viernes distintos", diasDe(5), 3);
+  add("faltas", "coleccionista", "🧮", "Coleccionista", "Al menos una falta en todos los módulos", MODULOS.filter(m => f(m.id) > 0).length, MODULOS.length);
+  let reincide = 0;
+  MODULOS.forEach(m => {
+    const conFalta = faltasEn(m.id);
+    const dias = LECTIVOS.filter(d => d.fecha <= hoy && HORARIO[m.id][d.dia] > 0);
+    reincide = Math.max(reincide, mejorRacha(dias, d => !conFalta.has(d.fecha)));
+  });
+  add("faltas", "reincidente", "🔁", "Reincidente", "Faltar a un mismo módulo 3 clases seguidas", reincide, 3);
+
+  // 🐢 Retrasos
+  const ret = retrasosDe(p);
+  add("retrasos", "retraso1", "🐌", "Primer retraso", "Llegar tarde por primera vez", ret, 1);
+  add("retrasos", "tortuga", "🐢", "Tortuga", "5 retrasos en total", ret, 5);
+  add("retrasos", "despertador", "⏰", "Despertador roto", "10 retrasos en total", ret, 10);
+  const otros = Math.max(...PERSONAS.filter(x => x !== p).map(retrasosDe));
+  add("retrasos", "rey_retrasos", "🕰️", "Rey de los retrasos", "Ser quien más retrasos tiene del grupo, sin empate", ret, otros + 1, true);
+
+  // 🏆 Grupo
+  const total = stats(p).total;
+  add("ranking", "empate", "🤝", "Empate técnico", "Tener las mismas faltas que algún compañero", total > 0 && PERSONAS.some(x => x !== p && stats(x).total === total) ? 1 : 0, 1, true);
+  return lista;
+}
+
+// Fila de insignias de cada tarjeta del ranking
+function insignias(p) {
+  const ok = logros(p).filter(l => l.ok), iconos = [...new Set(ok.map(l => l.icono))];
+  const vistos = iconos.slice(0, 5).join(" ");
+  return `<div class="rk-logros" title="${ok.length ? ok.map(l => l.titulo).join(" · ") : "Sin logros todavía"}"><b>🏅 ${ok.length}</b>${vistos}${iconos.length > 5 ? `<small>+${iconos.length - 5}</small>` : ""}</div>`;
+}
+
+let lgPersona = null;
+function renderLogros() {
+  if (!lgPersona || !PERSONAS.includes(lgPersona)) lgPersona = yo;
+  const p = lgPersona, lista = logros(p), hechos = lista.filter(l => l.ok).length;
+  const sel = $("lgPersona");
+  sel.innerHTML = "";
+  PERSONAS.forEach(x => sel.add(new Option(x === yo ? `${nombre(x)} (tú)` : nombre(x), x, false, x === p)));
+  $("lgResumen").innerHTML = `<b>${hechos}</b> de ${lista.length} logros conseguidos
+    <div class="lg-barra"><i style="--p:${hechos / lista.length * 100}%"></i></div>`;
+  $("lgLista").innerHTML = GRUPOS_LOGROS.map(([g, tit]) => `
+    <h3 class="lg-grupo">${tit}</h3>
+    <div class="lg-grid">${lista.filter(l => l.grupo === g).map(l => `
+      <div class="lg${l.ok ? " ok" : ""}" title="${l.ok ? "Conseguido" : "Bloqueado"}">
+        <div class="lg-ico" aria-hidden="true">${l.icono}</div>
+        <div><b>${esc(l.titulo)}</b><span>${esc(l.desc)}</span>${l.mientras ? "<em>mientras dure</em>" : ""}${!l.ok && l.meta > 1 ? `
+          <div class="lg-barra"><i style="--p:${l.n / l.meta * 100}%"></i>${l.n}/${l.meta}</div>` : ""}</div>
+      </div>`).join("")}
+    </div>`).join("");
+}
+$("lgPersona").onchange = ev => { lgPersona = ev.target.value; renderLogros(); };
+
+// Aviso con confeti cuando consigues un logro nuevo. Los ya vistos se guardan en
+// el navegador; la primera vez solo se apuntan, sin celebrar todos de golpe.
+const claveLogros = () => `faltas2dam_logros_${yo}`;
+const colaLogros = [];
+let celebrando = false;
+function comprobarLogros() {
+  if (!yo || !["faltas", "retrasos", "registro"].every(x => cargado.has(x))) return;
+  const ok = logros(yo).filter(l => l.ok).map(l => l.id);
+  let vistos = null;
+  try { vistos = JSON.parse(localStorage.getItem(claveLogros())); } catch (e) {}
+  const nuevos = Array.isArray(vistos) ? ok.filter(id => !vistos.includes(id)) : [];
+  if (Array.isArray(vistos) && !nuevos.length) return;
+  try { localStorage.setItem(claveLogros(), JSON.stringify([...new Set([...(vistos || []), ...ok])])); } catch (e) {}
+  colaLogros.push(...nuevos);
+  if (!celebrando) celebrarSiguiente();
+}
+function celebrarSiguiente() {
+  const id = colaLogros.shift(), l = id && logros(yo).find(x => x.id === id);
+  celebrando = !!id;
+  if (!id) return;
+  if (!l) return celebrarSiguiente();
+  $("lpIco").textContent = l.icono;
+  $("lpNombre").textContent = l.titulo;
+  $("lpDesc").textContent = l.desc;
+  const pop = $("logroPop");
+  pop.hidden = true; void pop.offsetWidth; pop.hidden = false;   // reinicia la animación de entrada
+  const colores = ["#f5c542", "#22b8e6", "#ff5a6a", "#3ddc84", "#b18cff", "#ffffff"];
+  $("confeti").innerHTML = Array.from({ length: 70 }, () => {
+    const r = Math.random;
+    return `<i style="left:${r() * 100}%;background:${colores[r() * colores.length | 0]};--x:${(r() - .5) * 220}px;--g:${(r() - .5) * 1440}deg;--d:${2.2 + r() * 1.6}s;--r:${r() * .5}s"></i>`;
+  }).join("");
+  setTimeout(() => {
+    pop.hidden = true;
+    $("confeti").innerHTML = "";
+    setTimeout(celebrarSiguiente, 350);
+  }, 4000);
+}
+$("logroPop").onclick = () => { $("logroPop").hidden = true; lgPersona = yo; renderLogros(); $("logros").scrollIntoView(); };
+
 function render() {
   if (!yo) return;
-  renderUser(); renderStats(); renderRanking(); renderMuro(); renderProyeccion(); renderEstadisticas(); renderPlayers(); renderGrid();
+  renderUser(); renderStats(); renderRanking(); renderMuro(); renderProyeccion(); renderEstadisticas(); renderLogros(); renderPlayers(); renderGrid();
+  comprobarLogros();
   if (viendo) verPerfil(viendo);
 }
 

@@ -29,6 +29,10 @@ al momento sin recargar.
   mes del curso y la lista "Lo que te queda" con el margen de cada módulo (naranja si
   queda el 25 % o menos, rojo si ya estás en el límite). Se puede ver a cualquier
   miembro del grupo y se actualiza en tiempo real.
+- **Logros**: 27 insignias (asistencia, "El GOAT de" cada módulo, faltas, retrasos y
+  grupo) que se calculan solas con las faltas y los retrasos. Se ven en su sección (de
+  cualquier miembro), en el ranking, y al conseguir uno nuevo sale un aviso con confeti.
+  Los marcados «mientras dure» se pierden si dejas de cumplirlos.
 - **Muro**: cada falta apuntada aparece en el muro del grupo ("Joaquín ha faltado a
   Desarrollo de interfaces · hace 5 min"). Se puede reaccionar con 😂 💀 👀 🫡 😤 (una vez
   por emoji y persona; al pulsar el contador se ve quién) y comentar (máximo 200

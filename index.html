@@ -301,6 +301,7 @@
   /* MÓDULOS */
   .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
   .mod {
+    position: relative;
     border: 1.5px solid var(--border); border-radius: 16px; padding: 22px;
     background: rgba(19,26,40,.35); transition: border-color .2s;
   }
@@ -340,6 +341,26 @@
   .mod.max, .mod.dead { --c: var(--bad); }
   .mod.dead { border-color: var(--bad); background: rgba(255,90,106,.08); }
   .mod.warn .st, .mod.max .st, .mod.dead .st { font-weight: 500; }
+
+  /* ADORNOS: Desarrollo de interfaces de diablo y Programación multimedia y dispositivos móviles de ángel */
+  .grid { row-gap: 34px; }
+  .adorno { position: absolute; pointer-events: none; overflow: visible; }
+  .cuerno { top: -25px; width: 28px; height: 28px; filter: drop-shadow(0 0 6px rgba(255,59,59,.55)); }
+  .cuerno.izq { left: 22%; }
+  .cuerno.der { right: 22%; transform: scaleX(-1); }
+  .cola { bottom: -30px; right: 34px; width: 46px; height: 40px; transform-origin: 6px 0; animation: menear 2.4s ease-in-out infinite; filter: drop-shadow(0 0 5px rgba(255,59,59,.5)); }
+  @keyframes menear { 0%, 100% { transform: rotate(-6deg); } 50% { transform: rotate(8deg); } }
+  .mod.diablo:not(.dead) { border-color: rgba(255,59,59,.45); }
+  .mod.diablo:not(.dead):hover { border-color: rgba(255,59,59,.85); }
+  .aro {
+    top: -24px; left: 50%; width: 74px; height: 16px; margin-left: -37px; border-radius: 50%;
+    border: 3px solid #ffd54a; box-shadow: 0 0 12px rgba(255,213,74,.75), inset 0 0 6px rgba(255,213,74,.6);
+    animation: flotar 3s ease-in-out infinite;
+  }
+  @keyframes flotar { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+  .mod.angel:not(.dead) { border-color: rgba(255,213,74,.4); }
+  .mod.angel:not(.dead):hover { border-color: rgba(255,213,74,.8); }
+  @media (prefers-reduced-motion: reduce) { .cola, .aro { animation: none; } }
 
   .pop { animation: pop .22s ease; }
   @keyframes pop { 50% { transform: scale(1.12); } }
@@ -1488,13 +1509,14 @@ function renderGrid() {
         </div>` : "";
   cont.innerHTML = "";
   MODULOS.forEach(m => {
+    const adorno = ADORNOS[m.id];
     const f = datos.faltas[actual][m.id];
     const tarde = datos.retrasos[actual][m.id];
     const e = estado(f, m.max);
     const pct = Math.min(100, (f / m.max) * 100);
     const el = document.createElement("div");
-    el.className = "mod " + e.cls;
-    el.innerHTML = `
+    el.className = "mod " + e.cls + (adorno ? " " + adorno.clase : "");
+    el.innerHTML = `${adorno ? adorno.html : ""}
       <div class="mtop">
         <div class="icon">${m.corto}</div>
         <div class="mh">${m.horas} h<br>límite ${m.max}</div>
@@ -1520,6 +1542,20 @@ function renderGrid() {
   });
   ultimo = null;
 }
+
+// Adornos de algunas tarjetas: cuernos y cola de diablo, o aro de ángel
+const CUERNO = `<path d="M5 22 C6 14 4 7 1 1 C9 5 16 12 19 22 Z" fill="url(#gCuerno)"/>`;
+const DEGRADADO = `<defs><linearGradient id="gCuerno" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#b3121b"/><stop offset="1" stop-color="#ff4d4d"/></linearGradient></defs>`;
+const ADORNOS = {
+  DI: { clase: "diablo", html: `
+      <svg class="adorno cuerno izq" viewBox="0 0 22 22" aria-hidden="true">${DEGRADADO}${CUERNO}</svg>
+      <svg class="adorno cuerno der" viewBox="0 0 22 22" aria-hidden="true">${CUERNO}</svg>
+      <svg class="adorno cola" viewBox="0 0 46 40" aria-hidden="true">
+        <path d="M6 0 C4 14 18 22 30 20 C36 19 38 24 36 28" fill="none" stroke="#e0242c" stroke-width="3" stroke-linecap="round"/>
+        <path d="M36 25 L44 34 L33 38 Z" fill="#ff3b3b"/>
+      </svg>` },
+  PGL: { clase: "angel", html: `<div class="adorno aro" aria-hidden="true"></div>` }
+};
 
 // ── Faltas con fecha ─────────────────────────────────────────
 

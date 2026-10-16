@@ -8,13 +8,17 @@
 // · Sube la versión de CACHE cuando cambies la lista de ESTATICOS o quieras
 //   forzar que se borre la caché antigua en todos los dispositivos.
 
-const CACHE = "faltas-v1";
+const CACHE = "faltas-v2";
 
 // Archivos que se guardan nada más instalar, para que la app abra sin conexión.
 // Rutas relativas a la carpeta del service worker (la web puede estar en /nombre-repo/).
 const ESTATICOS = [
   "./",
   "index.html",
+  "logros.html",
+  "css/estilos.css",
+  "js/curso.js",
+  "js/logros.js",
   "manifest.json",
   "img/logo.png",
   "img/logo-192.png",

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Logros · Faltas 2DAM</title>
+<meta name="description" content="Logros e insignias del grupo de 2DAM.">
+<meta name="theme-color" content="#1a2233">
+<link rel="icon" type="image/png" href="img/favicon.png" sizes="64x64">
+<link rel="apple-touch-icon" href="img/apple-touch-icon.png" sizes="180x180">
+<link rel="manifest" href="manifest.json">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Faltas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;1,400;1,500&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/estilos.css">
+</head>
+<body>
+<div class="glow g1"></div>
+<div class="glow g2"></div>
+<div class="glow g3"></div>
+
+<div class="wrap">
+  <nav>
+    <a class="logo" href="index.html"><img src="img/logo-192.png" alt="">2DAM</a>
+    <div class="links">
+      <a href="index.html#ranking">Ranking</a>
+      <a href="index.html#estadisticas">Estadísticas</a>
+      <a href="index.html#modulos">Módulos</a>
+      <a class="pill ghost volver" href="index.html">← Volver</a>
+    </div>
+  </nav>
+
+  <section id="logros">
+    <div class="head">
+      <div class="over">Logros</div>
+      <h2>Insignias</h2>
+      <p>Se desbloquean solos con las faltas y los retrasos. Los que pone «mientras dure» se pierden si dejas de cumplirlos.</p>
+    </div>
+    <div class="filtros">
+      <label>Persona <select id="lgPersona" aria-label="Persona de los logros"></select></label>
+    </div>
+    <div class="lg-resumen" id="lgResumen"></div>
+    <div id="lgLista"><p class="lg-cargando">Cargando…</p></div>
+  </section>
+</div>
+
+<footer>
+  <div class="copy">Sebastian · Matías · Ian · Joaquín</div>
+</footer>
+
+<script>
+if ("serviceWorker" in navigator) addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(e => console.error("Service worker:", e)));
+</script>
+
+<script type="module">
+import { firebaseConfig, PERSONAS, normalizar, esc, leerCopia } from "./js/curso.js";
+import { logros, GRUPOS_LOGROS } from "./js/logros.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getDatabase, ref, get, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getDatabase(app);
+const $ = id => document.getElementById(id);
+
+let yo = null, datos = null, registro = {}, perfiles = {};
+// Persona que se ve: la de ?p= (al venir desde el ranking) o tú
+let lgPersona = new URLSearchParams(location.search).get("p");
+const nombre = p => perfiles[p]?.nombre || p;
+
+// Sin sesión no se puede leer nada: el inicio de sesión está en index.html
+onAuthStateChanged(auth, async user => {
+  if (!user) return location.replace("index.html");
+  // Con la copia local de index.html se pinta al momento (y sin conexión)
+  const copia = leerCopia(user.uid);
+  if (copia) {
+    yo = copia.persona; datos = { faltas: normalizar(copia.datos?.faltas), retrasos: normalizar(copia.datos?.retrasos) };
+    registro = copia.registro || {}; perfiles = copia.perfiles || {};
+    render();
+  } else {
+    try {
+      const snap = await get(ref(db, `usuarios/${user.uid}/persona`));
+      if (!snap.exists()) return location.replace("index.html");
+      yo = snap.val();
+    } catch (e) {
+      $("lgLista").innerHTML = `<p class="lg-cargando">No se pudo conectar. Abre la app con conexión e inténtalo otra vez.</p>`;
+      return;
+    }
+  }
+  datos ||= { faltas: normalizar(null), retrasos: normalizar(null) };
+  ["faltas", "retrasos"].forEach(tipo => onValue(ref(db, tipo), snap => { datos[tipo] = normalizar(snap.val()); render(); }));
+  onValue(ref(db, "registro"), snap => { registro = snap.val() || {}; render(); });
+  onValue(ref(db, "perfiles"), snap => { perfiles = snap.val() || {}; render(); });
+});
+
+function render() {
+  if (!yo || !datos) return;
+  if (!PERSONAS.includes(lgPersona)) lgPersona = yo;
+  const p = lgPersona, lista = logros(p, datos, registro), hechos = lista.filter(l => l.ok).length;
+  const sel = $("lgPersona");
+  sel.innerHTML = "";
+  PERSONAS.forEach(x => sel.add(new Option(x === yo ? `${nombre(x)} (tú)` : nombre(x), x, false, x === p)));
+  $("lgResumen").innerHTML = `<b>${hechos}</b> de ${lista.length} logros conseguidos
+    <div class="lg-barra"><i style="--p:${hechos / lista.length * 100}%"></i></div>`;
+  $("lgLista").innerHTML = GRUPOS_LOGROS.map(([g, tit]) => `
+    <h3 class="lg-grupo">${tit}</h3>
+    <div class="lg-grid">${lista.filter(l => l.grupo === g).map(l => `
+      <div class="lg${l.ok ? " ok" : ""}" title="${l.ok ? "Conseguido" : "Bloqueado"}">
+        <div class="lg-ico" aria-hidden="true">${l.icono}</div>
+        <div><b>${esc(l.titulo)}</b><span>${esc(l.desc)}</span>${l.mientras ? "<em>mientras dure</em>" : ""}${!l.ok && l.meta > 1 ? `
+          <div class="lg-barra"><i style="--p:${l.n / l.meta * 100}%"></i>${l.n}/${l.meta}</div>` : ""}</div>
+      </div>`).join("")}
+    </div>`).join("");
+}
+$("lgPersona").onchange = ev => {
+  lgPersona = ev.target.value;
+  history.replaceState(null, "", "?p=" + encodeURIComponent(lgPersona));
+  render();
+};
+</script>
+</body>
+</html>

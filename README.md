@@ -6,7 +6,13 @@ al momento sin recargar.
 
 ## Cómo funciona
 
-- Todo está en `index.html` (HTML + CSS + JS, sin compilar nada). El logo y los iconos están en `img/`.
+- Sin compilar nada (HTML + CSS + JS):
+  - `index.html`: la app (inicio de sesión, ranking, muro, proyección, estadísticas y módulos).
+  - `logros.html`: la página de logros.
+  - `css/estilos.css`: estilos de las dos páginas.
+  - `js/curso.js`: configuración de Firebase, módulos, personas, calendario y horario.
+  - `js/logros.js`: el cálculo de los logros.
+  - El logo y los iconos están en `img/`.
 - Para entrar hay que **registrarse con un código de invitación**. Hay un código por
   persona y solo se puede usar una vez: al registrarte, tu cuenta queda vinculada a
   tus faltas.
@@ -30,7 +36,7 @@ al momento sin recargar.
   queda el 25 % o menos, rojo si ya estás en el límite). Se puede ver a cualquier
   miembro del grupo y se actualiza en tiempo real.
 - **Logros**: 27 insignias (asistencia, "El GOAT de" cada módulo, faltas, retrasos y
-  grupo) que se calculan solas con las faltas y los retrasos. Se ven en su sección (de
+  grupo) que se calculan solas con las faltas y los retrasos. Se ven en `logros.html` (de
   cualquier miembro), en el ranking, y al conseguir uno nuevo sale un aviso con confeti.
   Los marcados «mientras dure» se pierden si dejas de cumplirlos.
 - **Muro**: cada falta apuntada aparece en el muro del grupo ("Joaquín ha faltado a
@@ -42,7 +48,7 @@ al momento sin recargar.
 
 ### Calendario y horario del curso
 
-`index.html` tiene dos objetos con el curso:
+`js/curso.js` tiene dos objetos con el curso:
 
 - `CALENDARIO`: primer y último día de clase, festivos y vacaciones (los usa la
   proyección para contar los días de clase pasados y los que quedan).
@@ -133,7 +139,7 @@ Firebase Hosting, Netlify, Hostinger…
 
 ## Añadir personas o módulos
 
-Edita los arrays `PERSONAS` y `MODULOS` en `index.html` y añade los nuevos nombres o
+Edita los arrays `PERSONAS` y `MODULOS` en `js/curso.js` y añade los nuevos nombres o
 ids también en `database.rules.json`. Una persona nueva necesita además su propio código en la regla de `duenos` (y vuelve a publicar las reglas).
 
 ## Versión de Automoción (`automocion/`)

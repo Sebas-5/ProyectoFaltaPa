@@ -35,6 +35,9 @@ al momento sin recargar.
   mes del curso y la lista "Lo que te queda" con el margen de cada módulo (naranja si
   queda el 25 % o menos, rojo si ya estás en el límite). Se puede ver a cualquier
   miembro del grupo y se actualiza en tiempo real.
+- **Horario**: justo debajo de la portada, los cinco días con los módulos y las horas de
+  cada uno (sale de `HORARIO` en `js/curso.js`). Resalta hoy, o el próximo día de clase si
+  hoy no hay, y colorea cada módulo según cómo vas de faltas.
 - **Logros**: 27 insignias (asistencia, "El GOAT de" cada módulo, faltas, retrasos y
   grupo) que se calculan solas con las faltas y los retrasos. Se ven en `logros.html` (de
   cualquier miembro), en el ranking, y al conseguir uno nuevo sale un aviso con confeti.

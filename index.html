@@ -35,6 +35,7 @@
     <div class="links">
       <span class="sync" id="sync"><i></i><span>Conectando…</span></span>
       <a href="#inicio">Inicio</a>
+      <a href="#horario">Horario</a>
       <a href="#ranking">Ranking</a>
       <a href="#muro" class="muro-link">Muro<span class="punto" id="muroPunto" hidden></span></a>
       <a href="#proyeccion">Proyección</a>
@@ -60,6 +61,16 @@
   </div>
 
   <div class="divider"></div>
+
+  <section id="horario">
+    <div class="head">
+      <div class="over">Horario</div>
+      <h2>Horario de clase</h2>
+      <p id="horSub"></p>
+    </div>
+    <div class="horario" id="horarioDias"></div>
+    <p class="hor-leyenda">Horas de cada módulo ese día. El color es cómo vas de faltas en ese módulo: azul bien, naranja cerca del límite, rojo en el límite.</p>
+  </section>
 
   <section id="ranking">
     <div class="head">
@@ -140,6 +151,7 @@
       <h4>Menú</h4>
       <ul>
         <li><a href="#inicio">Inicio</a></li>
+        <li><a href="#horario">Horario</a></li>
         <li><a href="#ranking">Ranking</a></li>
         <li><a href="#muro">Muro</a></li>
         <li><a href="#proyeccion">Proyección</a></li>
@@ -1443,9 +1455,36 @@ function celebrarSiguiente() {
 }
 $("logroPop").onclick = () => { location.href = "logros.html"; };
 
+// ── Horario de la semana (sale de HORARIO en js/curso.js) ────
+
+function renderHorario() {
+  const hoy = hoyISO();
+  const esHoy = LECTIVOS.some(d => d.fecha === hoy);
+  const proximo = LECTIVOS.find(d => d.fecha >= hoy);   // hoy si hay clase, si no el siguiente día de clase
+  const marcado = proximo ? proximo.dia : -1;
+  const horasDe = i => MODULOS.reduce((a, m) => a + HORARIO[m.id][i], 0);
+  const largo = iso => fechaUTC(iso).toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" });
+  $("horSub").textContent = esHoy ? `Hoy, ${largo(hoy)}, tienes ${horasDe(marcado)} horas de clase.`
+    : proximo ? `Hoy no hay clase. La próxima es el ${largo(proximo.fecha)}.`
+    : "El curso ya ha terminado. 🎉";
+  $("horarioDias").innerHTML = DIAS_SEMANA.map((dia, i) => {
+    const mods = MODULOS.filter(m => HORARIO[m.id][i] > 0);
+    return `
+      <div class="hor-dia${i === marcado ? " hoy" : ""}">
+        <h3>${dia[0].toUpperCase() + dia.slice(1)}${i === marcado ? `<span>${esHoy ? "Hoy" : "Próximo"}</span>` : ""}</h3>
+        <div class="hor-mods">${mods.map(m => {
+          const e = estado(datos.faltas[yo][m.id], m.max);
+          return `<div class="hor-mod ${e.cls}" title="${m.nombre} · ${HORARIO[m.id][i]} h · ${e.txt}">
+            <b>${m.corto}</b><span>${m.nombre}</span><i>${HORARIO[m.id][i]} h</i></div>`;
+        }).join("")}</div>
+        <small>${horasDe(i)} horas</small>
+      </div>`;
+  }).join("");
+}
+
 function render() {
   if (!yo) return;
-  renderUser(); renderStats(); renderRanking(); renderMuro(); renderProyeccion(); renderEstadisticas(); renderPlayers(); renderGrid();
+  renderUser(); renderStats(); renderHorario(); renderRanking(); renderMuro(); renderProyeccion(); renderEstadisticas(); renderPlayers(); renderGrid();
   comprobarLogros();
   if (viendo) verPerfil(viendo);
 }

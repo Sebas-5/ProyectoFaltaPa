@@ -84,6 +84,26 @@ section { padding: 80px 0 20px; }
 h2 { font-family: "Playfair Display", serif; font-style: italic; font-weight: 400; font-size: clamp(1.8rem, 4vw, 2.4rem); margin: 0 0 10px; }
 .head p { color: var(--muted); font-size: .88rem; max-width: 520px; margin: 0 auto; line-height: 1.7; }
 
+/* HORARIO */
+.horario { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
+.hor-dia { border: 1.5px solid var(--border); border-radius: 16px; padding: 16px 14px; background: rgba(19,26,40,.35); min-width: 0; display: flex; flex-direction: column; }
+.hor-dia.hoy { border-color: var(--cyan); background: linear-gradient(160deg, rgba(34,184,230,.14), rgba(19,26,40,.4) 60%); box-shadow: 0 0 24px rgba(34,184,230,.18); }
+.hor-dia h3 { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-weight: 500; font-size: .95rem; margin: 0 0 12px; }
+.hor-dia h3 span { background: var(--cyan); color: #fff; font-size: .62rem; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; border-radius: 999px; padding: 3px 9px; }
+.hor-mods { display: grid; gap: 6px; flex: 1; align-content: start; }
+.hor-mod {
+  --c: var(--cyan);
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 8px; align-items: center;
+  padding: 8px 10px; border-radius: 10px; background: rgba(243,246,250,.04); border-left: 3px solid var(--c); font-size: .78rem;
+}
+.hor-mod.warn { --c: var(--warn); }
+.hor-mod.max, .hor-mod.dead { --c: var(--bad); }
+.hor-mod b { color: var(--c); font-size: .72rem; font-weight: 600; letter-spacing: .03em; }
+.hor-mod span { color: var(--muted); font-size: .7rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hor-mod i { font-style: normal; font-size: .7rem; color: var(--text); }
+.hor-dia small { margin-top: 10px; font-size: .7rem; color: var(--muted); }
+.hor-leyenda { text-align: center; color: var(--muted); font-size: .72rem; margin: 16px 0 0; }
+
 /* RANKING */
 .ranking { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; position: relative; }
 .rk {
@@ -516,6 +536,8 @@ body.con-instalar .toast { bottom: 96px; }
 @media (prefers-reduced-motion: reduce) { .logro-pop { animation: none; } .confeti { display: none; } }
 
 @media (max-width: 900px) {
+  .hor-mod { grid-template-columns: minmax(0, 1fr) auto; }
+  .hor-mod span { display: none; }
   .lg-grid { grid-template-columns: repeat(2, 1fr); }
   .st-cols { grid-template-columns: 1fr; }
   .hero { grid-template-columns: 1fr; padding-top: 30px; }
@@ -524,6 +546,12 @@ body.con-instalar .toast { bottom: 96px; }
   .fwrap { grid-template-columns: 1fr 1fr; }
 }
 @media (max-width: 560px) {
+  .horario { grid-template-columns: 1fr; gap: 8px; }
+  .hor-dia { display: grid; grid-template-columns: 84px minmax(0, 1fr); align-items: center; gap: 10px; padding: 12px; }
+  .hor-dia h3 { flex-direction: column; align-items: flex-start; gap: 4px; margin: 0; font-size: .88rem; }
+  .hor-dia small { display: none; }
+  .hor-mods { display: flex; flex-wrap: wrap; gap: 6px; }
+  .hor-mod { display: inline-flex; gap: 6px; padding: 5px 9px; }
   .links a { display: none; }
   .links { gap: 10px; }
   .sync span, .user span:last-child { display: none; }

@@ -35,9 +35,12 @@ al momento sin recargar.
   mes del curso y la lista "Lo que te queda" con el margen de cada módulo (naranja si
   queda el 25 % o menos, rojo si ya estás en el límite). Se puede ver a cualquier
   miembro del grupo y se actualiza en tiempo real.
-- **Horario**: justo debajo de la portada, los cinco días con los módulos y las horas de
-  cada uno (sale de `HORARIO` en `js/curso.js`). Resalta hoy, o el próximo día de clase si
-  hoy no hay, y colorea cada módulo según cómo vas de faltas.
+- **Horario**: justo debajo de la portada, las clases de cada día en orden, con sus horas y
+  el recreo (sale de `CLASES` en `js/curso.js`). Resalta hoy (o el próximo día de clase),
+  marca la clase de **Ahora** y la **Siguiente**, y colorea cada clase según cómo vas de
+  faltas en ese módulo. En el móvil se ve un día cada vez, con pestañas. Desarrollo de
+  interfaces lleva cuernos, Programación multimedia un aro de ángel y Sostenibilidad una
+  bandera pirata.
 - **Logros**: 27 insignias (asistencia, "El GOAT de" cada módulo, faltas, retrasos y
   grupo) que se calculan solas con las faltas y los retrasos. Se ven en `logros.html` (de
   cualquier miembro), en el ranking, y al conseguir uno nuevo sale un aviso con confeti.
@@ -55,9 +58,9 @@ al momento sin recargar.
 
 - `CALENDARIO`: primer y último día de clase, festivos y vacaciones (los usa la
   proyección para contar los días de clase pasados y los que quedan).
-- `HORARIO`: cuántas sesiones tiene cada módulo el lunes, martes, miércoles, jueves
-  y viernes (sirve para comprobar que el día elegido para una falta tuvo clase de ese
-  módulo).
+- `CLASES`: el horario de cada día, clase a clase (`[inicio, fin, módulo]`). De aquí sale
+  `HORARIO`, las sesiones de cada módulo por día, que sirve para comprobar que el día
+  elegido para una falta tuvo clase de ese módulo.
 
 Si cambia alguna fecha o el horario, basta con editarlos ahí.
 

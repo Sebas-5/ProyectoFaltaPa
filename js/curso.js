@@ -38,18 +38,24 @@ export const CALENDARIO = {
   vacaciones: [["2026-12-22", "2027-01-07"]]   // Navidad (ambos días incluidos)
 };
 
-// Sesiones de cada módulo por día de la semana: [lunes, martes, miércoles, jueves, viernes]
-export const HORARIO = {
-  SSG:   [0, 0, 1, 1, 1],
-  PGV:   [0, 0, 1, 2, 0],
-  FOL:   [1, 0, 2, 0, 0],   // IPW · Itinerario personal para la empleabilidad II
-  PROY:  [0, 1, 1, 0, 0],   // PL9 · Proyecto intermodular
-  SOST:  [0, 0, 0, 0, 1],   // SOJ · Sostenibilidad aplicada al sistema productivo
-  AD:    [2, 2, 0, 2, 0],   // AED
-  DI:    [1, 2, 1, 1, 0],   // DAD
-  PGL:   [2, 0, 0, 0, 2],
-  CIBER: [0, 1, 0, 0, 2]    // A10 · Módulo optativo de diseño propio
-};
+// Horario semanal: cada clase es [inicio, fin, módulo], en orden, de lunes a viernes.
+// Códigos del horario del centro: IPW = FOL, AED = AD, DAD = DI, PL9 = PROY,
+// SOJ = SOST, A10 = CIBER (módulo optativo de diseño propio).
+export const CLASES = [
+  [["14:15", "15:10", "FOL"], ["15:10", "16:05", "AD"], ["16:05", "17:00", "AD"],
+   ["17:20", "18:15", "PGL"], ["18:15", "19:10", "PGL"], ["19:10", "20:00", "DI"]],      // lunes
+  [["14:30", "15:20", "DI"], ["15:20", "16:10", "DI"], ["16:10", "17:00", "AD"],
+   ["17:30", "18:20", "AD"], ["18:20", "19:10", "CIBER"], ["19:10", "20:00", "PROY"]],   // martes
+  [["14:15", "15:10", "FOL"], ["15:10", "16:05", "FOL"], ["16:05", "17:00", "SSG"],
+   ["17:20", "18:15", "PGV"], ["18:15", "19:10", "PROY"], ["19:10", "20:00", "DI"]],     // miércoles
+  [["14:15", "15:10", "DI"], ["15:10", "16:05", "SSG"], ["16:05", "17:00", "PGV"],
+   ["17:20", "18:15", "PGV"], ["18:15", "19:10", "AD"], ["19:10", "20:00", "AD"]],       // jueves
+  [["14:15", "15:10", "PGL"], ["15:10", "16:05", "PGL"], ["16:05", "17:00", "CIBER"],
+   ["17:20", "18:15", "CIBER"], ["18:15", "19:10", "SOST"], ["19:10", "20:00", "SSG"]]   // viernes
+];
+
+// Sesiones de cada módulo por día de la semana (sale de CLASES): HORARIO.AD = [2, 2, 0, 2, 0]
+export const HORARIO = Object.fromEntries(MODULOS.map(m => [m.id, CLASES.map(dia => dia.filter(c => c[2] === m.id).length)]));
 
 // Lista de todos los días lectivos (lunes a viernes que no son festivo ni vacaciones)
 // con el día de la semana (0 = lunes … 4 = viernes)

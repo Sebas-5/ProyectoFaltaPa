@@ -68,8 +68,9 @@
       <h2>Horario de clase</h2>
       <p id="horSub"></p>
     </div>
+    <div class="hor-tabs" id="horTabs" role="tablist" aria-label="Día de la semana"></div>
     <div class="horario" id="horarioDias"></div>
-    <p class="hor-leyenda">Horas de cada módulo ese día. El color es cómo vas de faltas en ese módulo: azul bien, naranja cerca del límite, rojo en el límite.</p>
+    <p class="hor-leyenda">El color de cada clase es cómo vas de faltas en ese módulo: azul bien, naranja cerca del límite, rojo en el límite.</p>
   </section>
 
   <section id="ranking">
@@ -329,7 +330,7 @@ if ("serviceWorker" in navigator) {
 <script type="module">
 // Configuración de Firebase, módulos, calendario y horario: js/curso.js
 import {
-  firebaseConfig, MODULOS, PERSONAS, CALENDARIO, HORARIO, LECTIVOS, hoyISO, fechaUTC,
+  firebaseConfig, MODULOS, PERSONAS, CALENDARIO, CLASES, HORARIO, LECTIVOS, hoyISO, fechaUTC,
   vacio, normalizar, esc, fechaFalta, entradas as entradasDe, eventos as eventosDe, COPIA, leerCopia
 } from "./js/curso.js";
 import { logros as calcularLogros } from "./js/logros.js";
@@ -1455,32 +1456,70 @@ function celebrarSiguiente() {
 }
 $("logroPop").onclick = () => { location.href = "logros.html"; };
 
-// ── Horario de la semana (sale de HORARIO en js/curso.js) ────
+// ── Horario de la semana (sale de CLASES en js/curso.js) ─────
+
+const aMin = hm => { const [h, m] = hm.split(":").map(Number); return h * 60 + m; };
+// Adornos de algunas clases, a juego con sus tarjetas de módulo
+const ADORNOS_HORARIO = {
+  DI: `<svg class="hor-cuerno izq" viewBox="0 0 22 22" aria-hidden="true">${CUERNO.replace("url(#gCuerno)", "#e0242c")}</svg>
+       <svg class="hor-cuerno der" viewBox="0 0 22 22" aria-hidden="true">${CUERNO.replace("url(#gCuerno)", "#e0242c")}</svg>`,
+  PGL: `<i class="hor-aro" aria-hidden="true"></i>`,
+  SOST: `<span class="hor-pirata" title="Bandera pirata" aria-hidden="true">🏴‍☠️</span>`
+};
+let horDia = null;   // día que se ve en el móvil (por defecto, hoy o el próximo con clase)
 
 function renderHorario() {
-  const hoy = hoyISO();
+  const hoy = hoyISO(), ahora = new Date(), min = ahora.getHours() * 60 + ahora.getMinutes();
   const esHoy = LECTIVOS.some(d => d.fecha === hoy);
-  const proximo = LECTIVOS.find(d => d.fecha >= hoy);   // hoy si hay clase, si no el siguiente día de clase
+  // Si hoy hay clase pero ya han terminado, lo siguiente es el próximo día de clase
+  const acabado = esHoy && min >= aMin(CLASES[LECTIVOS.find(d => d.fecha === hoy).dia].at(-1)[1]);
+  const proximo = LECTIVOS.find(d => acabado ? d.fecha > hoy : d.fecha >= hoy);
   const marcado = proximo ? proximo.dia : -1;
-  const horasDe = i => MODULOS.reduce((a, m) => a + HORARIO[m.id][i], 0);
+  const enCurso = esHoy && !acabado && proximo.fecha === hoy;
+  if (horDia === null) horDia = Math.max(0, marcado);
   const largo = iso => fechaUTC(iso).toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" });
-  $("horSub").textContent = esHoy ? `Hoy, ${largo(hoy)}, tienes ${horasDe(marcado)} horas de clase.`
-    : proximo ? `Hoy no hay clase. La próxima es el ${largo(proximo.fecha)}.`
-    : "El curso ya ha terminado. 🎉";
+  const mod = id => MODULOS.find(m => m.id === id);
+
+  // Qué toca ahora y qué viene después (solo hoy)
+  let ahoraC = -1, siguienteC = -1;
+  if (enCurso) {
+    ahoraC = CLASES[marcado].findIndex(([a, b]) => min >= aMin(a) && min < aMin(b));
+    siguienteC = CLASES[marcado].findIndex(([a]) => aMin(a) > min);
+  }
+  const c = CLASES[marcado] || [];
+  $("horSub").textContent = !proximo ? "El curso ya ha terminado. 🎉"
+    : ahoraC >= 0 ? `Ahora: ${mod(c[ahoraC][2]).nombre}, hasta las ${c[ahoraC][1]}.`
+    : enCurso && siguienteC >= 0 ? `${min < aMin(c[0][0]) ? "Hoy empiezas" : "Siguiente clase"}: ${mod(c[siguienteC][2]).nombre} a las ${c[siguienteC][0]}.`
+    : `${acabado ? "Por hoy has terminado." : "Hoy no hay clase."} La próxima es el ${largo(proximo.fecha)} a las ${c[0][0]}.`;
+
+  $("horTabs").innerHTML = DIAS_SEMANA.map((d, i) =>
+    `<button type="button" role="tab" data-dia="${i}" aria-selected="${i === horDia}" class="${i === horDia ? "on" : ""}">${d.slice(0, 3)}${i === marcado ? " •" : ""}</button>`).join("");
   $("horarioDias").innerHTML = DIAS_SEMANA.map((dia, i) => {
-    const mods = MODULOS.filter(m => HORARIO[m.id][i] > 0);
+    let html = "";
+    CLASES[i].forEach(([ini, fin, id], k) => {
+      const prev = CLASES[i][k - 1];
+      if (prev && aMin(ini) - aMin(prev[1]) >= 10) html += `<div class="hor-recreo">Recreo · ${prev[1]}–${ini}</div>`;
+      const m = mod(id), e = estado(datos.faltas[yo][id], m.max);
+      const marca = i === marcado && k === ahoraC ? "Ahora" : i === marcado && k === siguienteC && ahoraC < 0 ? "Siguiente" : "";
+      html += `
+        <div class="hor-clase ${e.cls}${marca === "Ahora" ? " ahora" : ""}" title="${m.nombre} · ${ini}–${fin} · ${e.txt}">
+          ${ADORNOS_HORARIO[id] || ""}
+          <span class="hor-h">${ini}–${fin}</span>
+          <b>${m.corto}</b><span class="hor-n">${m.nombre}</span>${marca ? `<em>${marca}</em>` : ""}
+        </div>`;
+    });
     return `
-      <div class="hor-dia${i === marcado ? " hoy" : ""}">
-        <h3>${dia[0].toUpperCase() + dia.slice(1)}${i === marcado ? `<span>${esHoy ? "Hoy" : "Próximo"}</span>` : ""}</h3>
-        <div class="hor-mods">${mods.map(m => {
-          const e = estado(datos.faltas[yo][m.id], m.max);
-          return `<div class="hor-mod ${e.cls}" title="${m.nombre} · ${HORARIO[m.id][i]} h · ${e.txt}">
-            <b>${m.corto}</b><span>${m.nombre}</span><i>${HORARIO[m.id][i]} h</i></div>`;
-        }).join("")}</div>
-        <small>${horasDe(i)} horas</small>
+      <div class="hor-dia${i === marcado ? " hoy" : ""}${i === horDia ? " sel" : ""}">
+        <h3>${dia[0].toUpperCase() + dia.slice(1)}${i === marcado ? `<span>${esHoy && !acabado ? "Hoy" : "Próximo"}</span>` : ""}</h3>
+        <div class="hor-clases">${html}</div>
       </div>`;
   }).join("");
 }
+$("horTabs").onclick = ev => {
+  const b = ev.target.closest("[data-dia]");
+  if (b) { horDia = Number(b.dataset.dia); renderHorario(); }
+};
+setInterval(() => { if (yo) renderHorario(); }, 60000);   // "Ahora" y "Siguiente" al día
 
 function render() {
   if (!yo) return;

@@ -85,23 +85,34 @@ h2 { font-family: "Playfair Display", serif; font-style: italic; font-weight: 40
 .head p { color: var(--muted); font-size: .88rem; max-width: 520px; margin: 0 auto; line-height: 1.7; }
 
 /* HORARIO */
+.hor-tabs { display: none; }
 .horario { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
-.hor-dia { border: 1.5px solid var(--border); border-radius: 16px; padding: 16px 14px; background: rgba(19,26,40,.35); min-width: 0; display: flex; flex-direction: column; }
+.hor-dia { border: 1.5px solid var(--border); border-radius: 16px; padding: 16px 12px; background: rgba(19,26,40,.35); min-width: 0; }
 .hor-dia.hoy { border-color: var(--cyan); background: linear-gradient(160deg, rgba(34,184,230,.14), rgba(19,26,40,.4) 60%); box-shadow: 0 0 24px rgba(34,184,230,.18); }
-.hor-dia h3 { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-weight: 500; font-size: .95rem; margin: 0 0 12px; }
+.hor-dia h3 { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-weight: 500; font-size: .95rem; margin: 0 0 14px; }
 .hor-dia h3 span { background: var(--cyan); color: #fff; font-size: .62rem; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; border-radius: 999px; padding: 3px 9px; }
-.hor-mods { display: grid; gap: 6px; flex: 1; align-content: start; }
-.hor-mod {
+.hor-clases { display: grid; gap: 10px; }
+.hor-clase {
   --c: var(--cyan);
-  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 8px; align-items: center;
-  padding: 8px 10px; border-radius: 10px; background: rgba(243,246,250,.04); border-left: 3px solid var(--c); font-size: .78rem;
+  position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 8px; align-items: baseline;
+  padding: 8px 10px; border-radius: 10px; background: rgba(243,246,250,.045); border-left: 3px solid var(--c);
 }
-.hor-mod.warn { --c: var(--warn); }
-.hor-mod.max, .hor-mod.dead { --c: var(--bad); }
-.hor-mod b { color: var(--c); font-size: .72rem; font-weight: 600; letter-spacing: .03em; }
-.hor-mod span { color: var(--muted); font-size: .7rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.hor-mod i { font-style: normal; font-size: .7rem; color: var(--text); }
-.hor-dia small { margin-top: 10px; font-size: .7rem; color: var(--muted); }
+.hor-clase.warn { --c: var(--warn); }
+.hor-clase.max, .hor-clase.dead { --c: var(--bad); }
+.hor-clase.ahora { background: rgba(34,184,230,.16); box-shadow: 0 0 0 1px rgba(34,184,230,.5); }
+.hor-h { grid-column: 1 / -1; font-size: .66rem; color: var(--muted); font-variant-numeric: tabular-nums; margin-bottom: 2px; }
+.hor-clase b { color: var(--c); font-size: .75rem; font-weight: 600; letter-spacing: .03em; }
+.hor-n { font-size: .7rem; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hor-clase em { position: absolute; bottom: 7px; right: 8px; font-style: normal; font-size: .58rem; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--cyan); }
+.hor-recreo { text-align: center; font-size: .64rem; color: var(--muted); border-top: 1px dashed var(--border); border-bottom: 1px dashed var(--border); padding: 3px 0; }
+/* Adornos: cuernos en Desarrollo de interfaces, aro en Programación multimedia, bandera pirata en Sostenibilidad */
+.hor-cuerno { position: absolute; top: -10px; width: 13px; height: 13px; pointer-events: none; filter: drop-shadow(0 0 4px rgba(255,59,59,.5)); }
+.hor-cuerno.izq { left: 18%; }
+.hor-cuerno.der { right: 18%; transform: scaleX(-1); }
+.hor-aro { position: absolute; top: -9px; left: 50%; width: 40px; height: 9px; margin-left: -20px; border-radius: 50%; border: 2px solid #ffd54a; box-shadow: 0 0 8px rgba(255,213,74,.7); pointer-events: none; animation: flotar 3s ease-in-out infinite; }
+.hor-pirata { position: absolute; top: -13px; right: 6px; font-size: 1.25rem; line-height: 1; filter: drop-shadow(0 0 4px rgba(0,0,0,.6)); animation: ondear 2.2s ease-in-out infinite; transform-origin: 10% 90%; }
+@keyframes ondear { 0%, 100% { transform: rotate(-6deg); } 50% { transform: rotate(6deg); } }
+@media (prefers-reduced-motion: reduce) { .hor-aro, .hor-pirata { animation: none; } }
 .hor-leyenda { text-align: center; color: var(--muted); font-size: .72rem; margin: 16px 0 0; }
 
 /* RANKING */
@@ -536,8 +547,7 @@ body.con-instalar .toast { bottom: 96px; }
 @media (prefers-reduced-motion: reduce) { .logro-pop { animation: none; } .confeti { display: none; } }
 
 @media (max-width: 900px) {
-  .hor-mod { grid-template-columns: minmax(0, 1fr) auto; }
-  .hor-mod span { display: none; }
+  .hor-n { display: none; }
   .lg-grid { grid-template-columns: repeat(2, 1fr); }
   .st-cols { grid-template-columns: 1fr; }
   .hero { grid-template-columns: 1fr; padding-top: 30px; }
@@ -546,12 +556,14 @@ body.con-instalar .toast { bottom: 96px; }
   .fwrap { grid-template-columns: 1fr 1fr; }
 }
 @media (max-width: 560px) {
-  .horario { grid-template-columns: 1fr; gap: 8px; }
-  .hor-dia { display: grid; grid-template-columns: 84px minmax(0, 1fr); align-items: center; gap: 10px; padding: 12px; }
-  .hor-dia h3 { flex-direction: column; align-items: flex-start; gap: 4px; margin: 0; font-size: .88rem; }
-  .hor-dia small { display: none; }
-  .hor-mods { display: flex; flex-wrap: wrap; gap: 6px; }
-  .hor-mod { display: inline-flex; gap: 6px; padding: 5px 9px; }
+  /* En el móvil se ve un día cada vez, con pestañas para cambiar */
+  .hor-tabs { display: flex; gap: 6px; justify-content: center; margin-bottom: 14px; }
+  .hor-tabs button { flex: 1; max-width: 70px; border: 1.5px solid var(--border); background: transparent; color: var(--text); border-radius: 999px; padding: 7px 0; font: inherit; font-size: .78rem; text-transform: capitalize; cursor: pointer; }
+  .hor-tabs button.on { background: var(--cyan); border-color: var(--cyan); color: #fff; }
+  .horario { grid-template-columns: 1fr; }
+  .hor-dia { display: none; }
+  .hor-dia.sel { display: block; }
+  .hor-n { display: block; }
   .links a { display: none; }
   .links { gap: 10px; }
   .sync span, .user span:last-child { display: none; }

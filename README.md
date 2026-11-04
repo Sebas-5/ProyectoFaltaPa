@@ -7,7 +7,7 @@ al momento sin recargar.
 ## Cómo funciona
 
 - Sin compilar nada (HTML + CSS + JS):
-  - `index.html`: la app (inicio de sesión, ranking, muro, proyección, estadísticas y módulos).
+  - `index.html`: la app (inicio de sesión, horario, ranking, proyección, estadísticas y módulos).
   - `logros.html`: la página de logros.
   - `css/estilos.css`: estilos de las dos páginas.
   - `js/curso.js`: configuración de Firebase, módulos, personas, calendario y horario.
@@ -45,12 +45,6 @@ al momento sin recargar.
   grupo) que se calculan solas con las faltas y los retrasos. Se ven en `logros.html` (de
   cualquier miembro), en el ranking, y al conseguir uno nuevo sale un aviso con confeti.
   Los marcados «mientras dure» se pierden si dejas de cumplirlos.
-- **Muro**: cada falta apuntada aparece en el muro del grupo ("Joaquín ha faltado a
-  Desarrollo de interfaces · hace 5 min"). Se puede reaccionar con 😂 💀 👀 🫡 😤 (una vez
-  por emoji y persona; al pulsar el contador se ve quién) y comentar (máximo 200
-  caracteres). Cada uno borra sus comentarios y el administrador (Sebastian) puede
-  borrar cualquiera. El menú muestra cuántas entradas nuevas hay sin leer. Se cargan
-  las 20 últimas entradas y 20 más al llegar al final de la lista.
 
 ### Calendario y horario del curso
 
@@ -69,8 +63,8 @@ Si cambia alguna fecha o el horario, basta con editarlos ahí.
 ```text
 faltas/{persona}/{modulo}    número de faltas
 registro/{persona}/{id}      { modulo, fecha, ts }  una entrada por falta (ts: hora exacta)
-muro/{persona}/{id}          reacciones/{emoji}/{persona}: true
-                             comentarios/{id}: { autor, texto, ts }
+muro/{persona}/{id}          (ya no se usa) reacciones y comentarios del antiguo muro;
+                             se borran al borrar su falta
 retrasos/{persona}/{modulo}  número de retrasos
 perfiles/{persona}           { nombre, foto }
 usuarios/{uid}               { persona }        cuenta → persona (solo la lee su dueño)

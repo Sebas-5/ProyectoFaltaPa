@@ -955,7 +955,11 @@ function renderGrid() {
       </div>
       <div class="mname">${m.nombre}</div>
       <div class="st">${e.txt}</div>${lineaProy(f, m)}
-      <div class="bar"><div class="fill" style="width:${pct}%"></div></div>
+      <div class="bar-wrap">
+        <div class="bar"><div class="fill" style="width:${pct}%"></div></div>
+        <i class="aperc a1${f / m.max >= .25 ? " pasado" : ""}" title="1.er apercibimiento: a partir de ${Math.ceil(m.max / 4)} faltas"><span>1.er apercibimiento</span></i>
+        <i class="aperc a2${f / m.max >= .5 ? " pasado" : ""}" title="2.º apercibimiento: a partir de ${Math.ceil(m.max / 2)} faltas"><span>2.º apercibimiento</span></i>
+      </div>
       <div class="mbot">
         <div class="cnt">${f}<span> / ${m.max}</span></div>${botones("falta")}
       </div>

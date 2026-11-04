@@ -37,7 +37,6 @@
       <a href="#inicio">Inicio</a>
       <a href="#horario">Horario</a>
       <a href="#ranking">Ranking</a>
-      <a href="#muro" class="muro-link">Muro<span class="punto" id="muroPunto" hidden></span></a>
       <a href="#proyeccion">Proyección</a>
       <a href="#estadisticas">Estadísticas</a>
       <a href="logros.html">Logros</a>
@@ -80,20 +79,6 @@
       <p>Ordenado por total de faltas. Pulsa en una tarjeta para ver los módulos de esa persona.</p>
     </div>
     <div class="ranking" id="rankingList"></div>
-  </section>
-
-  <section id="muro">
-    <div class="head">
-      <div class="over">Muro</div>
-      <h2>Lo último del grupo</h2>
-      <p>Cada falta que se apunta aparece aquí. Reacciona y comenta en tiempo real.</p>
-    </div>
-    <div class="muro-wrap">
-      <div class="muro-lista" id="muroLista" aria-live="polite">
-        <p class="vacio" id="muroVacio" hidden>Todavía nadie ha faltado. Que siga así. 😇</p>
-        <div class="muro-fin" id="muroFin" hidden>Cargando más…</div>
-      </div>
-    </div>
   </section>
 
   <section id="proyeccion">
@@ -154,7 +139,6 @@
         <li><a href="#inicio">Inicio</a></li>
         <li><a href="#horario">Horario</a></li>
         <li><a href="#ranking">Ranking</a></li>
-        <li><a href="#muro">Muro</a></li>
         <li><a href="#proyeccion">Proyección</a></li>
         <li><a href="#estadisticas">Estadísticas</a></li>
         <li><a href="logros.html">Logros</a></li>
@@ -339,7 +323,7 @@ import {
   getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword,
   sendPasswordResetEmail, signOut, deleteUser
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getDatabase, ref, get, set, onValue, runTransaction, update, push, serverTimestamp }
+import { getDatabase, ref, get, onValue, runTransaction, update, push, serverTimestamp }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 const app = initializeApp(firebaseConfig);
@@ -512,7 +496,6 @@ function entrar(p, copia = null) {
 }
 
 function salirDeDatos() {
-  limpiarMuro();
   desuscribir.forEach(f => f());
   desuscribir = [];
   yo = null;
@@ -1097,6 +1080,7 @@ async function cambiar(tipo, m, d, fecha = fechaFalta()) {
       mios[id] = { modulo: m.id, fecha, ts: Date.now() };
     } else {
       const ult = entradas(yo, m.id)[0];   // se quita la falta más reciente de ese módulo
+      // muro/…: reacciones y comentarios del antiguo muro de esa falta, se borran con ella
       if (ult) { cambios[`registro/${yo}/${ult[0]}`] = cambios[`muro/${yo}/${ult[0]}`] = null; delete mios[ult[0]]; }
     }
     registro = { ...registro, [yo]: mios };
@@ -1117,238 +1101,6 @@ async function cambiar(tipo, m, d, fecha = fechaFalta()) {
     console.error(e);
     toast("No se pudo guardar el cambio", true);
   }
-}
-
-// ── Muro ─────────────────────────────────────────────────────
-// Cada entrada del muro es una falta del registro (registro/{persona}/{id}).
-// Las reacciones y comentarios viven en muro/{persona}/{id} y solo se escuchan
-// los de las entradas cargadas: las 20 últimas y 20 más cada vez que se llega al final.
-
-const ADMIN = "Sebastian";    // puede borrar cualquier comentario (también lo comprueban las reglas)
-const EMOJIS = { risa: "😂", muerto: "💀", ojos: "👀", saludo: "🫡", enfado: "😤" };
-const PAGINA = 20;
-const MAX_COMENTARIO = 200;
-let muroLimite = PAGINA;
-let muroSocial = {};          // "persona/id" → { reacciones, comentarios }
-let muroSubs = {};            // "persona/id" → función para dejar de escuchar
-const muroQuien = new Set();  // "persona/id|emoji" con la lista de quién reaccionó abierta
-let muroVisible = false;
-
-function entradasMuro() {
-  const lista = [];
-  PERSONAS.forEach(p => Object.entries(registro[p] || {}).forEach(([id, e]) => {
-    if (!e || !MODULOS.some(m => m.id === e.modulo)) return;
-    lista.push({ p, id, clave: `${p}/${id}`, modulo: e.modulo, fecha: e.fecha, ts: typeof e.ts === "number" ? e.ts : null });
-  }));
-  // Las faltas antiguas (sin hora) se ordenan por su fecha
-  const orden = e => e.ts ?? Date.parse(e.fecha + "T12:00:00");
-  return lista.sort((a, b) => orden(b) - orden(a) || b.id.localeCompare(a.id));
-}
-
-function haceCuanto(ts, fecha) {
-  if (!ts) return "el " + fechaUTC(fecha).toLocaleDateString("es-ES", { day: "numeric", month: "long", timeZone: "UTC" });
-  const s = Math.max(0, (Date.now() - ts) / 1000);
-  if (s < 60) return "hace un momento";
-  if (s < 3600) return `hace ${Math.floor(s / 60)} min`;
-  if (s < 86400) return `hace ${Math.floor(s / 3600)} h`;
-  const d = Math.floor(s / 86400);
-  if (d === 1) return "ayer";
-  if (d < 7) return `hace ${d} días`;
-  return "el " + new Date(ts).toLocaleDateString("es-ES", { day: "numeric", month: "long" });
-}
-
-// ── Sin leer: entradas de otros posteriores a la última vez que se abrió el muro ──
-const claveLeido = () => `faltas2dam_muro_leido_${yo}`;
-function leidoHasta() {
-  try {
-    const v = Number(localStorage.getItem(claveLeido()));
-    if (v) return v;
-    localStorage.setItem(claveLeido(), String(Date.now()));   // primera vez: nada pendiente
-  } catch (e) {}
-  return Date.now();
-}
-function marcarLeido() {
-  try { localStorage.setItem(claveLeido(), String(Date.now())); } catch (e) {}
-  pintarSinLeer();
-}
-function pintarSinLeer() {
-  if (!yo) return;
-  if (muroVisible) { try { localStorage.setItem(claveLeido(), String(Date.now())); } catch (e) {} }
-  const hasta = leidoHasta();
-  const n = muroVisible ? 0 : entradasMuro().filter(e => e.p !== yo && e.ts && e.ts > hasta).length;
-  const punto = $("muroPunto");
-  punto.textContent = n > 9 ? "9+" : String(n);
-  punto.hidden = !n;
-  punto.setAttribute("aria-label", `${n} sin leer`);
-}
-
-function renderMuro() {
-  const lista = entradasMuro();
-  const visibles = lista.slice(0, muroLimite);
-  const claves = new Set(visibles.map(e => e.clave));
-  const cont = $("muroLista");
-  // Deja de escuchar (y quita) las entradas que ya no están: por ejemplo, una falta quitada con −
-  Object.keys(muroSubs).forEach(k => { if (!claves.has(k)) { muroSubs[k](); delete muroSubs[k]; delete muroSocial[k]; } });
-  cont.querySelectorAll(".post").forEach(el => { if (!claves.has(el.dataset.k)) el.remove(); });
-  const primeraVez = !cont.querySelector(".post");
-  visibles.forEach((e, i) => {
-    let el = [...cont.querySelectorAll(".post")].find(x => x.dataset.k === e.clave);
-    if (!el) {
-      el = crearPost(e);
-      if (!primeraVez) el.classList.add("nuevo");
-    }
-    el._e = e;
-    pintarPost(el);
-    const enSuSitio = cont.querySelectorAll(".post")[i];
-    if (enSuSitio !== el) cont.insertBefore(el, enSuSitio || $("muroFin"));
-    if (!muroSubs[e.clave]) {
-      muroSubs[e.clave] = onValue(ref(db, `muro/${e.clave}`), snap => {
-        muroSocial[e.clave] = snap.val() || {};
-        const post = [...cont.querySelectorAll(".post")].find(x => x.dataset.k === e.clave);
-        if (post) pintarPost(post);
-      }, err => console.error(err));
-    }
-  });
-  $("muroVacio").hidden = lista.length > 0;
-  $("muroFin").hidden = visibles.length >= lista.length;
-  pintarSinLeer();
-}
-
-function crearPost(e) {
-  const el = document.createElement("article");
-  el.className = "post";
-  el.dataset.k = e.clave;
-  el.innerHTML = `
-    <span class="av"></span>
-    <div>
-      <p class="post-txt"></p>
-      <span class="post-cuando"></span>
-      <div class="post-reacs"></div>
-      <p class="post-quien" hidden></p>
-      <div class="post-acciones">
-        <div class="emojis" role="group" aria-label="Reaccionar">
-          ${Object.entries(EMOJIS).map(([k, v]) => `<button type="button" data-emoji="${k}" aria-pressed="false" title="Reaccionar ${v}">${v}</button>`).join("")}
-        </div>
-        <button class="link post-com-btn" type="button">💬 Comentar</button>
-      </div>
-      <ul class="post-coms"></ul>
-      <form class="post-form" hidden>
-        <input name="texto" maxlength="${MAX_COMENTARIO}" autocomplete="off" placeholder="Escribe un comentario…" aria-label="Comentario">
-        <span class="cuenta">0/${MAX_COMENTARIO}</span>
-        <button class="pill" type="submit">Enviar</button>
-      </form>
-    </div>`;
-  return el;
-}
-
-function pintarPost(el) {
-  const e = el._e, s = muroSocial[e.clave] || {};
-  const modulo = MODULOS.find(m => m.id === e.modulo).nombre;
-  el.querySelector(".av").innerHTML = avatar(e.p);
-  const apuntada = e.ts ? new Date(e.ts) : null;
-  const otroDia = apuntada && e.fecha !== `${apuntada.getFullYear()}-${String(apuntada.getMonth() + 1).padStart(2, "0")}-${String(apuntada.getDate()).padStart(2, "0")}`;
-  el.querySelector(".post-txt").innerHTML = `<strong>${esc(nombre(e.p))}</strong>${e.p === yo ? ' <span class="tu">(tú)</span>' : ""} ha faltado a <strong>${esc(modulo)}</strong>${otroDia ? ` el ${fechaUTC(e.fecha).toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" })}` : ""}`;
-  el.querySelector(".post-cuando").textContent = haceCuanto(e.ts, e.fecha);
-  // Reacciones: contador por emoji; al pulsarlo se ve quién reaccionó
-  const quienes = k => PERSONAS.filter(p => s.reacciones?.[k]?.[p]);   // siempre en el orden del grupo
-  el.querySelector(".post-reacs").innerHTML = Object.entries(EMOJIS).filter(([k]) => quienes(k).length).map(([k, v]) =>
-    `<button type="button" class="chip${quienes(k).includes(yo) ? " on" : ""}" data-quien="${k}" title="Ver quién ha reaccionado">${v}<b>${quienes(k).length}</b></button>`).join("");
-  const abiertos = Object.keys(EMOJIS).filter(k => muroQuien.has(`${e.clave}|${k}`) && quienes(k).length);
-  const quien = el.querySelector(".post-quien");
-  quien.hidden = !abiertos.length;
-  quien.innerHTML = abiertos.map(k => `${EMOJIS[k]} ${quienes(k).map(p => esc(nombre(p))).join(", ")}`).join(" · ");
-  el.querySelectorAll(".emojis button").forEach(b => {
-    const mio = quienes(b.dataset.emoji).includes(yo);
-    b.classList.toggle("on", mio);
-    b.setAttribute("aria-pressed", String(mio));
-  });
-  // Comentarios (el texto siempre escapado: lo escribe cualquiera del grupo)
-  const coms = Object.entries(s.comentarios || {}).filter(([, c]) => c && PERSONAS.includes(c.autor)).sort(([, a], [, b]) => (a.ts || 0) - (b.ts || 0));
-  el.querySelector(".post-com-btn").textContent = coms.length ? `💬 ${coms.length} comentario${coms.length > 1 ? "s" : ""}` : "💬 Comentar";
-  el.querySelector(".post-coms").innerHTML = coms.map(([cid, c]) => `
-    <li>
-      <span class="av">${avatar(c.autor)}</span>
-      <div><span class="com-cab"><b>${esc(nombre(c.autor))}</b> · ${esc(haceCuanto(c.ts, e.fecha))}</span><p>${esc(c.texto)}</p></div>
-      ${c.autor === yo || yo === ADMIN ? `<button type="button" class="com-borrar" data-cid="${esc(cid)}" title="Borrar comentario" aria-label="Borrar comentario">×</button>` : "<span></span>"}
-    </li>`).join("");
-}
-
-// Todo con delegación de eventos: las tarjetas se repintan sin perder lo que se está escribiendo
-$("muroLista").addEventListener("click", async ev => {
-  const post = ev.target.closest(".post");
-  if (!post || !yo) return;
-  const clave = post.dataset.k;
-  const emoji = ev.target.closest("[data-emoji]")?.dataset.emoji;
-  const verQuien = ev.target.closest("[data-quien]")?.dataset.quien;
-  const borrar = ev.target.closest(".com-borrar")?.dataset.cid;
-  try {
-    if (emoji) {
-      const mio = !!muroSocial[clave]?.reacciones?.[emoji]?.[yo];
-      await set(ref(db, `muro/${clave}/reacciones/${emoji}/${yo}`), mio ? null : true);
-    } else if (verQuien) {
-      const k = `${clave}|${verQuien}`;
-      muroQuien.has(k) ? muroQuien.delete(k) : muroQuien.add(k);
-      pintarPost(post);
-    } else if (ev.target.closest(".post-com-btn")) {
-      const form = post.querySelector(".post-form");
-      form.hidden = !form.hidden;
-      if (!form.hidden) form.elements.texto.focus();
-    } else if (borrar) {
-      if (!confirm("¿Borrar este comentario?")) return;
-      await set(ref(db, `muro/${clave}/comentarios/${borrar}`), null);
-    }
-  } catch (e) {
-    console.error(e);
-    toast("No se pudo guardar", true);
-  }
-});
-$("muroLista").addEventListener("input", ev => {
-  if (ev.target.name !== "texto") return;
-  ev.target.closest(".post-form").querySelector(".cuenta").textContent = `${ev.target.value.length}/${MAX_COMENTARIO}`;
-});
-$("muroLista").addEventListener("submit", async ev => {
-  ev.preventDefault();
-  const form = ev.target, clave = form.closest(".post").dataset.k;
-  const texto = form.elements.texto.value.trim();
-  if (!texto || !yo) return;
-  if (texto.length > MAX_COMENTARIO) return toast(`Máximo ${MAX_COMENTARIO} caracteres`, true);
-  form.querySelector("button").disabled = true;
-  try {
-    await push(ref(db, `muro/${clave}/comentarios`), { autor: yo, texto, ts: serverTimestamp() });
-    form.reset();
-    form.querySelector(".cuenta").textContent = `0/${MAX_COMENTARIO}`;
-  } catch (e) {
-    console.error(e);
-    toast("No se pudo enviar el comentario", true);
-  } finally { form.querySelector("button").disabled = false; }
-});
-
-// Carga progresiva: al llegar al final de la lista se cargan 20 entradas más
-new IntersectionObserver(es => {
-  if (es.some(e => e.isIntersecting) && yo && muroLimite < entradasMuro().length) {
-    muroLimite += PAGINA;
-    renderMuro();
-  }
-}, { root: $("muroLista"), rootMargin: "120px" }).observe($("muroFin"));
-
-// Al abrir (ver) el muro se ponen a cero las entradas sin leer
-new IntersectionObserver(es => {
-  muroVisible = es.some(e => e.isIntersecting);
-  if (muroVisible && yo) marcarLeido();
-}, { threshold: .15 }).observe($("muro"));
-document.querySelectorAll('a[href="#muro"]').forEach(a => a.addEventListener("click", () => { if (yo) marcarLeido(); }));
-
-// "hace 5 min" se actualiza solo
-setInterval(() => document.querySelectorAll("#muroLista .post").forEach(el => el._e && pintarPost(el)), 60000);
-
-function limpiarMuro() {
-  Object.values(muroSubs).forEach(f => f());
-  muroSubs = {};
-  muroSocial = {};
-  muroQuien.clear();
-  muroLimite = PAGINA;
-  document.querySelectorAll("#muroLista .post").forEach(el => el.remove());
-  $("muroPunto").hidden = true;
 }
 
 // ── Estadísticas ─────────────────────────────────────────────
@@ -1527,7 +1279,7 @@ setInterval(() => { if (yo) renderHorario(); }, 60000);   // "Ahora" y "Siguient
 
 function render() {
   if (!yo) return;
-  renderUser(); renderStats(); renderHorario(); renderRanking(); renderMuro(); renderProyeccion(); renderEstadisticas(); renderPlayers(); renderGrid();
+  renderUser(); renderStats(); renderHorario(); renderRanking(); renderProyeccion(); renderEstadisticas(); renderPlayers(); renderGrid();
   comprobarLogros();
   if (viendo) verPerfil(viendo);
 }

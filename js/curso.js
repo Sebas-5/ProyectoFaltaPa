@@ -14,15 +14,17 @@ export const firebaseConfig = {
   appId: "1:861140427939:web:8c1d4f1eac986618c98b16"
 };
 
+// max = faltas que puedes tener como mucho; con una más pierdes la evaluación continua
+// (por ejemplo, en Desarrollo de interfaces la continua se pierde con 24 faltas → max 23)
 export const MODULOS = [
-  { id: "SSG",   nombre: "Sistemas de gestión empresarial",                corto: "SSG", max: 16, horas: 96 },
+  { id: "SSG",   nombre: "Sistemas de gestión empresarial",                corto: "SSG", max: 17, horas: 96 },
   { id: "PGV",   nombre: "Programación de servicios y procesos",           corto: "PGV", max: 16, horas: 96 },
   { id: "FOL",   nombre: "Itinerario personal para la empleabilidad II",   corto: "IPW", max: 16, horas: 96 },
   { id: "PROY",  nombre: "Proyecto intermodular",                          corto: "PRY", max: 13, horas: 64 },
-  { id: "SOST",  nombre: "Sostenibilidad aplicada al sistema productivo",  corto: "SOS", max: 6,  horas: 32 },
-  { id: "AD",    nombre: "Acceso a datos",                                 corto: "AD",  max: 29, horas: 147 },
-  { id: "DI",    nombre: "Desarrollo de interfaces",                       corto: "DI",  max: 27, horas: 138 },
-  { id: "PGL",   nombre: "Programación multimedia y dispositivos móviles", corto: "PGL", max: 18, horas: 110 },
+  { id: "SOST",  nombre: "Sostenibilidad aplicada al sistema productivo",  corto: "SOS", max: 7,  horas: 32 },
+  { id: "AD",    nombre: "Acceso a datos",                                 corto: "AD",  max: 27, horas: 147 },
+  { id: "DI",    nombre: "Desarrollo de interfaces",                       corto: "DI",  max: 23, horas: 138 },
+  { id: "PGL",   nombre: "Programación multimedia y dispositivos móviles", corto: "PGL", max: 19, horas: 110 },
   { id: "CIBER", nombre: "Ciberseguridad",                                 corto: "CIB", max: 16, horas: 96 }
 ];
 // Ids internos de cada persona. En la base de datos:

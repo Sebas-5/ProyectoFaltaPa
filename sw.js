@@ -8,7 +8,7 @@
 // · Sube la versión de CACHE cuando cambies la lista de ESTATICOS o quieras
 //   forzar que se borre la caché antigua en todos los dispositivos.
 
-const CACHE = "faltas-v2";
+const CACHE = "faltas-v3";
 
 // Archivos que se guardan nada más instalar, para que la app abra sin conexión.
 // Rutas relativas a la carpeta del service worker (la web puede estar en /nombre-repo/).
@@ -52,7 +52,9 @@ self.addEventListener("fetch", event => {
   if (!peticion.url.startsWith(self.registration.scope)) return;  // otro origen u otra web del mismo dominio: a la red
 
   event.respondWith(
-    fetch(peticion)
+    // cache: "no-cache" → el navegador pregunta siempre al servidor si hay versión nueva
+    // (GitHub Pages deja guardar las páginas 10 minutos y se abría una versión vieja)
+    fetch(peticion, { cache: "no-cache" })
       .then(respuesta => {
         // Solo se guardan respuestas buenas de nuestro propio origen
         if (respuesta.ok && respuesta.type === "basic") {

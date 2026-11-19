@@ -1318,12 +1318,15 @@ $("fileInput").onchange = ev => {
   r.onload = async () => {
     let faltas, retrasos, obj;
     try { obj = JSON.parse(r.result); } catch (e) { return toast("Archivo no válido", true); }
-    if (Array.isArray(obj.faltasConFecha)) return importarConFecha(obj.faltasConFecha);
+    if (Array.isArray(obj.faltasConFecha)) return importarConFecha(obj.faltasConFecha, obj.retrasos);
     try {
-      // Formato { faltas, retrasos }; los archivos antiguos solo traen las faltas
-      faltas = normalizar(obj.faltas || obj)[yo];
-      retrasos = normalizar(obj.retrasos)[yo];
-    } catch (e) { return toast("Archivo no válido", true); }
+      // Formato { faltas, retrasos }; los archivos antiguos solo traen las faltas.
+      // Si el archivo no trae tus datos, se rechaza en vez de dejarte a 0.
+      const g = obj.faltas || obj;
+      if (!g || typeof g[yo] !== "object") throw new Error("sin datos de " + yo);
+      faltas = normalizar(g)[yo];
+      retrasos = obj.retrasos && typeof obj.retrasos[yo] === "object" ? normalizar(obj.retrasos)[yo] : datos.retrasos[yo];
+    } catch (e) { return toast("Archivo no válido: no trae tus faltas", true); }
     if (!confirm("Esto sustituirá tus faltas y retrasos por los del archivo. ¿Continuar?")) return;
     try { await escribirMios(faltas, retrasos); toast("Datos importados"); }
     catch (e) { console.error(e); toast("No se pudieron importar", true); }
@@ -1332,9 +1335,10 @@ $("fileInput").onchange = ev => {
 };
 
 // Importa una lista de faltas con fecha: { "faltasConFecha": [{ "modulo": "AD", "fecha": "2026-11-12" }, …] }
-// Sustituye tus faltas (contadores y registro con sus fechas) por las de la lista; los retrasos no cambian.
+// Sustituye tus faltas (contadores y registro con sus fechas) por las de la lista. Si trae
+// "retrasos": { "DI": 1, … } también los sustituye; si no, los retrasos no cambian.
 // Solo se aceptan días de clase hasta hoy en los que ese módulo tiene clase según el horario.
-async function importarConFecha(lista) {
+async function importarConFecha(lista, retrasosArchivo) {
   const hoy = hoyISO(), validas = [], malas = [];
   lista.forEach(f => {
     const m = MODULOS.find(x => x.id === f?.modulo), dia = LECTIVOS.find(d => d.fecha === f?.fecha);
@@ -1343,13 +1347,17 @@ async function importarConFecha(lista) {
   if (!validas.length) return toast("El archivo no tiene faltas válidas", true);
   const faltas = vacio()[yo];
   validas.forEach(f => faltas[f.modulo]++);
+  const conRetrasos = retrasosArchivo && typeof retrasosArchivo === "object";
+  const retrasos = conRetrasos ? normalizar({ [yo]: retrasosArchivo })[yo] : datos.retrasos[yo];
+  const nRet = Object.values(retrasos).reduce((a, b) => a + b, 0);
   if (!confirm(`Esto sustituirá tus faltas por las ${validas.length} del archivo, cada una con su fecha` +
-    (malas.length ? ` (${malas.length} no válidas se ignoran)` : "") + ". Tus retrasos no cambian. ¿Continuar?")) return;
+    (malas.length ? ` (${malas.length} no válidas se ignoran)` : "") +
+    (conRetrasos ? ` y tus retrasos por los del archivo (${nRet})` : ". Tus retrasos no cambian") + ". ¿Continuar?")) return;
   const cambios = {};
   Object.keys(registro[yo] || {}).forEach(id => { cambios[`muro/${yo}/${id}`] = null; });   // restos del antiguo muro
   cambios[`registro/${yo}`] = Object.fromEntries(validas.map(f =>
     [push(ref(db, `registro/${yo}`)).key, { modulo: f.modulo, fecha: f.fecha, ts: serverTimestamp() }]));
-  try { await escribirMios(faltas, datos.retrasos[yo], cambios); toast(`${validas.length} faltas importadas`); }
+  try { await escribirMios(faltas, retrasos, cambios); toast(`${validas.length} faltas importadas`); }
   catch (e) { console.error(e); toast("No se pudieron importar", true); }
 }
 </script>

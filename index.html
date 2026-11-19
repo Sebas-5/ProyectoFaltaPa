@@ -1316,9 +1316,10 @@ $("fileInput").onchange = ev => {
   if (!file || !yo) return;
   const r = new FileReader();
   r.onload = async () => {
-    let faltas, retrasos;
+    let faltas, retrasos, obj;
+    try { obj = JSON.parse(r.result); } catch (e) { return toast("Archivo no válido", true); }
+    if (Array.isArray(obj.faltasConFecha)) return importarConFecha(obj.faltasConFecha);
     try {
-      const obj = JSON.parse(r.result);
       // Formato { faltas, retrasos }; los archivos antiguos solo traen las faltas
       faltas = normalizar(obj.faltas || obj)[yo];
       retrasos = normalizar(obj.retrasos)[yo];
@@ -1329,6 +1330,28 @@ $("fileInput").onchange = ev => {
   };
   r.readAsText(file);
 };
+
+// Importa una lista de faltas con fecha: { "faltasConFecha": [{ "modulo": "AD", "fecha": "2026-11-12" }, …] }
+// Sustituye tus faltas (contadores y registro con sus fechas) por las de la lista; los retrasos no cambian.
+// Solo se aceptan días de clase hasta hoy en los que ese módulo tiene clase según el horario.
+async function importarConFecha(lista) {
+  const hoy = hoyISO(), validas = [], malas = [];
+  lista.forEach(f => {
+    const m = MODULOS.find(x => x.id === f?.modulo), dia = LECTIVOS.find(d => d.fecha === f?.fecha);
+    (m && dia && f.fecha <= hoy && HORARIO[m.id][dia.dia] > 0 ? validas : malas).push(f);
+  });
+  if (!validas.length) return toast("El archivo no tiene faltas válidas", true);
+  const faltas = vacio()[yo];
+  validas.forEach(f => faltas[f.modulo]++);
+  if (!confirm(`Esto sustituirá tus faltas por las ${validas.length} del archivo, cada una con su fecha` +
+    (malas.length ? ` (${malas.length} no válidas se ignoran)` : "") + ". Tus retrasos no cambian. ¿Continuar?")) return;
+  const cambios = {};
+  Object.keys(registro[yo] || {}).forEach(id => { cambios[`muro/${yo}/${id}`] = null; });   // restos del antiguo muro
+  cambios[`registro/${yo}`] = Object.fromEntries(validas.map(f =>
+    [push(ref(db, `registro/${yo}`)).key, { modulo: f.modulo, fecha: f.fecha, ts: serverTimestamp() }]));
+  try { await escribirMios(faltas, datos.retrasos[yo], cambios); toast(`${validas.length} faltas importadas`); }
+  catch (e) { console.error(e); toast("No se pudieron importar", true); }
+}
 </script>
 </body>
 </html>

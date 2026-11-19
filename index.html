@@ -1320,10 +1320,13 @@ $("fileInput").onchange = ev => {
     try { obj = JSON.parse(r.result); } catch (e) { return toast("Archivo no válido", true); }
     if (Array.isArray(obj.faltasConFecha)) return importarConFecha(obj.faltasConFecha);
     try {
-      // Formato { faltas, retrasos }; los archivos antiguos solo traen las faltas
-      faltas = normalizar(obj.faltas || obj)[yo];
-      retrasos = normalizar(obj.retrasos)[yo];
-    } catch (e) { return toast("Archivo no válido", true); }
+      // Formato { faltas, retrasos }; los archivos antiguos solo traen las faltas.
+      // Si el archivo no trae tus datos, se rechaza en vez de dejarte a 0.
+      const g = obj.faltas || obj;
+      if (!g || typeof g[yo] !== "object") throw new Error("sin datos de " + yo);
+      faltas = normalizar(g)[yo];
+      retrasos = obj.retrasos && typeof obj.retrasos[yo] === "object" ? normalizar(obj.retrasos)[yo] : datos.retrasos[yo];
+    } catch (e) { return toast("Archivo no válido: no trae tus faltas", true); }
     if (!confirm("Esto sustituirá tus faltas y retrasos por los del archivo. ¿Continuar?")) return;
     try { await escribirMios(faltas, retrasos); toast("Datos importados"); }
     catch (e) { console.error(e); toast("No se pudieron importar", true); }
